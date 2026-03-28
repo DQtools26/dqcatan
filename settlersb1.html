@@ -1,0 +1,2967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settlers: Capitalism — Digital Banker</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
+
+:root {
+  --bg:  #0f0d0a; --bg2: #1a1510; --bg3: #241d14; --bg4: #2e2518;
+  --gold: #c9954a; --gold2: #e8b96a; --gold3: #f5d08a;
+  --red: #c0392b;  --red2: #e74c3c;
+  --green: #27ae60; --green2: #2ecc71;
+  --blue: #2980b9;  --blue2: #3498db;
+  --wool: #4caf50; --wood: #795548; --brick: #e64a19; --ore: #607d8b; --grain: #ffc107;
+  --text: #f0e6d3; --text2: #b8a882; --text3: #7a6a50;
+  --border: #3a2e1e; --border2: #5a4a30;
+  --shadow: rgba(0,0,0,0.6);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Crimson Pro',Georgia,serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;}
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(ellipse at 20% 20%,rgba(201,149,74,.06) 0%,transparent 50%),
+  radial-gradient(ellipse at 80% 80%,rgba(192,57,43,.04) 0%,transparent 50%),
+  repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(201,149,74,.015) 40px,rgba(201,149,74,.015) 41px);
+  pointer-events:none;z-index:0;}
+#app{position:relative;z-index:1;width:100%;height:100vh;overflow:hidden;}
+
+/* ── SCREENS ── */
+.screen{display:none;position:fixed;inset:0;overflow-y:auto;background:var(--bg);z-index:1;}
+.screen.active{display:block;}
+
+/* ── NAVBAR ── */
+#navbar{
+  position:sticky;top:0;z-index:200;
+  background:rgba(15,13,10,.95);
+  border-bottom:1px solid var(--border2);
+  backdrop-filter:blur(8px);
+  display:flex;align-items:center;gap:1rem;
+  padding:.6rem 1.25rem;
+  height:52px;
+}
+.nav-brand{font-family:'Cinzel Decorative',serif;font-size:.85rem;color:var(--gold);white-space:nowrap;}
+.nav-center{flex:1;display:flex;align-items:center;justify-content:center;gap:.75rem;}
+.nav-turn-badge{display:flex;align-items:center;gap:.5rem;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:.25rem .9rem;}
+.nav-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.nav-name{font-family:'Cinzel',serif;font-size:.85rem;color:var(--gold2);font-weight:600;}
+.nav-roll{font-family:'Cinzel Decorative',serif;font-size:1.2rem;color:var(--text);background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:.1rem .6rem;min-width:48px;text-align:center;}
+.nav-turn-num{font-family:'Cinzel',serif;font-size:.7rem;color:var(--text3);}
+.nav-right{display:flex;gap:.4rem;align-items:center;}
+
+/* ── BUTTONS ── */
+.btn{font-family:'Cinzel',serif;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;padding:.5rem 1.1rem;border-radius:5px;border:none;cursor:pointer;transition:all .18s;font-weight:600;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1000;}
+.btn-gold:hover{background:linear-gradient(135deg,var(--gold2),var(--gold3));transform:translateY(-1px);box-shadow:0 4px 16px rgba(201,149,74,.3);}
+.btn-outline{background:transparent;border:1px solid var(--border2);color:var(--text2);}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+.btn-red{background:var(--red);color:#fff;}
+.btn-red:hover{background:var(--red2);}
+.btn-green{background:var(--green);color:#fff;}
+.btn-green:hover{background:var(--green2);}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-blue:hover{background:var(--blue2);}
+.btn-sm{padding:.32rem .7rem;font-size:.68rem;}
+.btn-xs{padding:.2rem .5rem;font-size:.62rem;}
+.btn-full{width:100%;}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;}
+
+/* ── INPUTS ── */
+input[type=text],input[type=number],input[type=password],select,textarea{
+  background:var(--bg3);border:1px solid var(--border2);border-radius:5px;
+  color:var(--text);font-family:'Crimson Pro',serif;font-size:.95rem;
+  padding:.42rem .7rem;outline:none;transition:border-color .15s,box-shadow .15s;
+}
+input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,149,74,.15);}
+input::placeholder{color:var(--text3);}
+select option{background:var(--bg2);color:var(--text);}
+input[type=checkbox]{accent-color:var(--gold);width:15px;height:15px;cursor:pointer;}
+
+/* ── CARDS / PANELS ── */
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1rem;}
+.panel-title{font-family:'Cinzel',serif;font-size:.68rem;color:var(--text3);letter-spacing:.25em;text-transform:uppercase;margin-bottom:.65rem;padding-bottom:.4rem;border-bottom:1px solid var(--border);}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1rem;flex-wrap:wrap;}
+.tab{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;padding:.5rem .85rem;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
+.tab:hover{color:var(--text2);}
+.tab.active{color:var(--gold2);border-bottom-color:var(--gold2);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* ── FORMS ── */
+.form-row{display:flex;align-items:center;gap:.65rem;margin-bottom:.65rem;flex-wrap:wrap;}
+.form-label{font-family:'Cinzel',serif;font-size:.68rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;min-width:72px;flex-shrink:0;}
+.form-group{margin-bottom:.85rem;}
+.form-group .form-label{display:block;margin-bottom:.25rem;}
+
+/* ── QTY CONTROL ── */
+.qty{display:flex;align-items:center;gap:.35rem;}
+.qty-btn{width:26px;height:26px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:background .12s;flex-shrink:0;}
+.qty-btn:hover{background:var(--border2);}
+.qty-num{font-family:'Cinzel Decorative',serif;font-size:1.1rem;color:var(--gold2);min-width:28px;text-align:center;}
+
+/* ── INFO / WARN BOXES ── */
+.info-box{background:rgba(41,128,185,.08);border:1px solid rgba(41,128,185,.25);border-radius:5px;padding:.5rem .75rem;font-size:.82rem;color:var(--text2);margin-bottom:.75rem;line-height:1.5;}
+.warn-box{background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.35);border-radius:5px;padding:.5rem .75rem;font-size:.82rem;color:#ff8a80;margin-bottom:.75rem;line-height:1.5;}
+.success-box{background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.3);border-radius:5px;padding:.5rem .75rem;font-size:.82rem;color:#80ffaa;margin-bottom:.75rem;}
+hr.div{border:none;border-top:1px solid var(--border);margin:.75rem 0;}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:1.5rem;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.7);transform:translateY(18px);transition:transform .2s;}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-title{font-family:'Cinzel',serif;font-size:1rem;color:var(--gold2);letter-spacing:.1em;margin-bottom:1.25rem;padding-bottom:.65rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-close{background:none;border:none;color:var(--text3);font-size:1.1rem;cursor:pointer;padding:.15rem .35rem;transition:color .12s;}
+.modal-close:hover{color:var(--red2);}
+
+/* ── NOTIFICATIONS ── */
+#notifs{position:fixed;top:58px;right:1rem;z-index:600;display:flex;flex-direction:column;gap:.4rem;pointer-events:none;max-width:270px;}
+.notif{background:var(--bg2);border-radius:7px;padding:.65rem .9rem;box-shadow:0 4px 16px var(--shadow);font-size:.82rem;color:var(--text);border-left:3px solid var(--gold);pointer-events:all;cursor:pointer;animation:slideIn .25s ease;}
+.notif.warn{border-left-color:#f39c12;}
+.notif.error{border-left-color:var(--red2);}
+.notif.success{border-left-color:var(--green2);}
+.notif-title{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold2);margin-bottom:.15rem;}
+.notif.warn .notif-title{color:#f39c12;}
+.notif.error .notif-title{color:var(--red2);}
+.notif.success .notif-title{color:var(--green2);}
+@keyframes slideIn{from{transform:translateX(110%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+/* ── STEP NAV ── */
+.step-nav{display:flex;align-items:center;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.28rem .38rem;margin-bottom:1rem;flex-wrap:wrap;gap:.1rem;}
+.step-nav-btn{font-family:'Cinzel',serif;font-size:.64rem;letter-spacing:.07em;text-transform:uppercase;padding:.36rem .7rem;border-radius:5px;border:none;background:transparent;color:var(--text3);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.step-nav-btn:hover{color:var(--text2);background:var(--bg3);}
+.step-nav-btn.active{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1000;box-shadow:0 2px 8px rgba(201,149,74,.28);}
+.step-nav-btn.done{color:var(--green2);}
+.step-nav-arrow{color:var(--text3);font-size:.72rem;padding:0 .08rem;opacity:.45;}
+
+/* ── ACTION CARD ── */
+.action-card{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:1.25rem;margin-bottom:.85rem;}
+.action-title{font-family:'Cinzel',serif;font-size:.85rem;color:var(--gold2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+
+/* ── PLAYER CARD (sidebar) ── */
+.player-card{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:.7rem;margin-bottom:.5rem;cursor:pointer;transition:border-color .15s,box-shadow .15s;}
+.player-card:hover{border-color:var(--border2);}
+.player-card.active-turn{border-left:3px solid;box-shadow:0 0 12px rgba(201,149,74,.1);}
+.pc-head{display:flex;align-items:center;gap:.45rem;margin-bottom:.45rem;}
+.pc-name{font-family:'Cinzel',serif;font-size:.85rem;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pc-vp{font-family:'Cinzel Decorative',serif;font-size:.82rem;color:var(--gold2);}
+.res-row{display:flex;gap:.25rem;flex-wrap:wrap;margin-bottom:.3rem;}
+.res-chip{display:flex;align-items:center;gap:3px;font-size:.78rem;background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:.12rem .32rem;}
+.res-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.pc-assets{font-size:.7rem;color:var(--text3);margin-bottom:.3rem;}
+.pc-tags{display:flex;flex-wrap:wrap;gap:.2rem;}
+.tag{font-size:.6rem;font-family:'Cinzel',serif;padding:.08rem .38rem;border-radius:3px;letter-spacing:.05em;}
+.tag-debt{background:rgba(192,57,43,.25);color:#ff8a80;border:1px solid rgba(192,57,43,.4);}
+.tag-rich{background:rgba(201,149,74,.2);color:var(--gold3);border:1px solid rgba(201,149,74,.4);}
+.tag-poor{background:rgba(90,50,20,.35);color:#a07050;border:1px solid #5a3010;}
+.tag-wait{background:rgba(100,60,120,.25);color:#cc99ff;border:1px solid rgba(100,60,120,.4);}
+.tag-cc{background:rgba(39,174,96,.2);color:#80ffaa;border:1px solid rgba(39,174,96,.35);}
+.tag-bank{background:rgba(41,128,185,.2);color:#80c8ff;border:1px solid rgba(41,128,185,.35);}
+.tag-win{background:rgba(201,149,74,.3);color:var(--gold3);border:1px solid rgba(201,149,74,.6);}
+.banked-note{font-size:.62rem;color:#80c8ff;}
+
+/* ── DICE ── */
+.dice-area{text-align:center;padding:1.25rem;}
+.big-dice{font-family:'Cinzel Decorative',serif;font-size:4rem;color:var(--gold2);line-height:1;margin-bottom:.5rem;display:block;transition:all .25s;}
+.big-dice.roll-anim{animation:diceAnim .5s ease;}
+@keyframes diceAnim{0%,100%{transform:scale(1) rotate(0);}25%{transform:scale(1.2) rotate(-12deg);}75%{transform:scale(.92) rotate(8deg);}50%{transform:scale(1.05) rotate(-3deg);}}
+
+/* ── GAME LAYOUT ── */
+.game-body{display:grid;grid-template-columns:265px 1fr 250px;min-height:calc(100vh - 52px);}
+.left-col{background:var(--bg2);border-right:1px solid var(--border);padding:.85rem;overflow-y:auto;max-height:calc(100vh - 52px);}
+.center-col{padding:1.25rem;overflow-y:auto;max-height:calc(100vh - 52px);}
+.right-col{background:var(--bg2);border-left:1px solid var(--border);padding:.85rem;overflow-y:auto;max-height:calc(100vh - 52px);}
+
+/* ── SETUP SCREEN ── */
+#setup-screen{min-height:100vh;padding:2rem 1rem;}
+#setup-screen .setup-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;}
+.setup-logo{text-align:center;margin-bottom:2.5rem;}
+.logo-main{font-family:'Cinzel Decorative',serif;font-size:clamp(1.8rem,5vw,3rem);background:linear-gradient(135deg,var(--gold) 0%,var(--gold3) 50%,var(--gold) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;}
+.logo-sub{font-family:'Cinzel',serif;font-size:.82rem;color:var(--text3);letter-spacing:.4em;text-transform:uppercase;margin-top:.4rem;}
+.logo-div{width:180px;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent);margin:.85rem auto;}
+.setup-card{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:1.75rem;width:100%;max-width:500px;box-shadow:0 8px 40px var(--shadow);}
+
+/* ── SETUP PLAYER ENTRY ── */
+.pentry{display:flex;gap:.6rem;align-items:center;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6rem .75rem;margin-bottom:.5rem;transition:border-color .15s;}
+.pentry:focus-within{border-color:var(--gold);}
+.pnum{font-family:'Cinzel',serif;font-size:.65rem;color:var(--text3);width:1.2rem;text-align:center;}
+.color-swatches{display:flex;gap:.3rem;}
+.cswatch{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:.12s;flex-shrink:0;}
+.cswatch:hover{transform:scale(1.2);}
+.cswatch.sel{border-color:#fff;}
+
+/* ── PLACEMENT SCREEN ── */
+#placement-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:2rem 1rem;}
+.place-card{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:1.75rem;width:100%;max-width:520px;box-shadow:0 8px 40px var(--shadow);}
+
+/* ── LOAN / RENTAL CARDS ── */
+.loan-card{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.65rem;margin-bottom:.4rem;}
+.loan-card.overdue{border-left:3px solid var(--red2);}
+.loan-h{display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem;}
+.loan-amt{font-family:'Cinzel Decorative',serif;font-size:.95rem;color:var(--gold2);}
+.loan-type{font-family:'Cinzel',serif;font-size:.65rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;}
+.loan-sub{font-size:.78rem;color:var(--text2);}
+.rental-item{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.5rem;}
+.rental-info{flex:1;}
+.rental-title{font-family:'Cinzel',serif;font-size:.8rem;color:var(--text2);}
+.rental-sub{font-size:.72rem;color:var(--text3);margin-top:.1rem;}
+
+/* ── SUMMARY TABLE ── */
+.sum-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+.sum-table th{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);padding:.35rem .55rem;border-bottom:1px solid var(--border);text-align:left;}
+.sum-table td{padding:.42rem .55rem;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text2);}
+.sum-table tr:last-child td{border:none;}
+.tval{font-family:'Cinzel Decorative',serif;color:var(--gold2);}
+
+/* ── DOWNTURN BANNER ── */
+#dt-banner{background:linear-gradient(135deg,rgba(192,57,43,.18),rgba(100,0,0,.15));border:1px solid var(--red);border-radius:8px;padding:.75rem 1.1rem;margin-bottom:.85rem;display:flex;align-items:center;gap:.85rem;}
+.dt-lbl{font-family:'Cinzel Decorative',serif;font-size:.95rem;color:var(--red2);}
+.dt-t{font-family:'Cinzel Decorative',serif;font-size:1.5rem;color:var(--red);margin-left:auto;}
+
+/* ── STOCK TICKER ── */
+#stock-ticker{background:var(--bg3);border-bottom:1px solid var(--border);font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.1em;color:var(--text3);padding:.3rem 1rem;overflow:hidden;white-space:nowrap;}
+#ticker-inner{display:inline-block;animation:ticker 35s linear infinite;}
+@keyframes ticker{from{transform:translateX(100vw);}to{transform:translateX(-100%);}}
+
+/* ── RIGHT PANEL ITEMS ── */
+.event-card{background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.35);border-radius:6px;padding:.65rem;margin-bottom:.5rem;}
+.event-title{font-family:'Cinzel',serif;font-size:.7rem;color:var(--red2);letter-spacing:.1em;text-transform:uppercase;}
+.event-desc{font-size:.78rem;color:var(--text3);margin-top:.15rem;}
+.ship-item{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:.45rem .6rem;margin-bottom:.35rem;}
+
+/* ── RES CONTROL ROW ── */
+.rc-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;padding:.38rem .5rem;background:var(--bg3);border-radius:5px;}
+.rc-bar{width:4px;height:22px;border-radius:2px;flex-shrink:0;}
+.rc-lbl{font-family:'Cinzel',serif;font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);width:42px;}
+.delta-n{font-family:'Cinzel Decorative',serif;font-size:.95rem;color:var(--gold2);min-width:28px;text-align:center;}
+.rc-cur{font-size:.75rem;color:var(--text3);margin-left:auto;min-width:90px;text-align:right;}
+
+/* ── VP TRACKER ── */
+.vp-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem;font-size:.85rem;}
+.vp-src{flex:1;color:var(--text2);}
+.vp-val{font-family:'Cinzel Decorative',serif;color:var(--gold2);min-width:24px;text-align:center;}
+
+/* ── COLLAPSE MODAL ── */
+.collapse-emoji{font-size:4rem;animation:shake .5s infinite;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px) rotate(-3deg);}75%{transform:translateX(6px) rotate(3deg);}}
+.collapse-hl{font-family:'Cinzel Decorative',serif;font-size:1.6rem;color:var(--red2);margin:1rem 0 .5rem;text-shadow:0 0 20px rgba(231,76,60,.5);}
+.collapse-instr{background:var(--bg3);border:1px solid var(--red);border-radius:7px;padding:.9rem;text-align:left;margin-bottom:1.25rem;}
+.ci-item{display:flex;gap:.65rem;align-items:flex-start;margin-bottom:.4rem;font-size:.9rem;color:var(--text2);}
+
+/* ── BANKER PASSWORD ── */
+#bpass-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:700;display:flex;align-items:center;justify-content:center;padding:1rem;}
+#bpass-box{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:2rem;width:100%;max-width:340px;text-align:center;}
+
+/* MISC */
+.flex{display:flex;}.gap-sm{gap:.5rem;}.gap-md{gap:.75rem;}.items-center{align-items:center;}.justify-between{justify-content:space-between;}.justify-end{justify-content:flex-end;}.flex-1{flex:1;}.mt-sm{margin-top:.5rem;}.mt-md{margin-top:1rem;}.mb-sm{margin-bottom:.5rem;}.text-sm{font-size:.85rem;}.text-xs{font-size:.75rem;}.text-gold{color:var(--gold2);}.text-red{color:var(--red2);}.text-green{color:var(--green2);}.text-muted{color:var(--text3);}.font-cinzel{font-family:'Cinzel',serif;}
+
+@media(max-width:900px){.game-body{grid-template-columns:1fr;}.left-col,.right-col{max-height:none;border:none;border-bottom:1px solid var(--border);}.center-col{max-height:none;}}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ═══════════════════ SETUP SCREEN ═══════════════════ -->
+<div id="setup-screen" class="screen active">
+<div class="setup-inner">
+  <div class="setup-logo">
+    <div class="logo-main">Settlers: Capitalism</div>
+    <div class="logo-div"></div>
+    <div class="logo-sub">Digital Banker Assistant</div>
+  </div>
+
+  <div class="setup-card">
+    <div class="panel-title">⚙ Game Setup</div>
+    <div id="players-list"></div>
+    <div style="display:flex;gap:.5rem;margin-top:.65rem">
+      <input type="text" id="new-player-name" placeholder="Player name…" style="flex:1" maxlength="20">
+      <button class="btn btn-outline btn-sm" onclick="addPlayer()">+ Add</button>
+    </div>
+    <hr class="div">
+    <div class="form-group">
+      <label class="form-label">Bank Manager</label>
+      <select id="banker-sel" style="width:100%"><option value="">— Choose —</option></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Banker Password (optional)</label>
+      <input type="password" id="banker-pass" placeholder="Leave blank for no password" style="width:100%">
+    </div>
+    <div id="setup-err" class="warn-box" style="display:none"></div>
+    <button class="btn btn-gold btn-full" style="margin-top:.75rem;font-size:.88rem;padding:.75rem" onclick="startSetup()">⚑ Begin — Place Starting Pieces</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════ PLACEMENT SCREEN ═══════════════════ -->
+<div id="placement-screen" class="screen" style="display:none">
+  <div style="width:100%;max-width:560px;margin:0 auto;padding:1.5rem 1rem">
+  <div class="panel-title" style="font-size:.85rem;letter-spacing:.2em" id="place-header">⚑ Initial Placement</div>
+  <div class="place-card">
+    <div class="info-box" id="place-instr">Each player places 2 settlements + 2 roads in clockwise order (Round 1), then reverse (Round 2). After your 2nd settlement, collect starting resources from adjacent hexes.</div>
+
+    <div style="text-align:center;margin-bottom:1.1rem">
+      <div class="font-cinzel text-xs text-muted" style="letter-spacing:.15em;text-transform:uppercase">Now Placing</div>
+      <div id="place-name" style="font-family:'Cinzel Decorative',serif;font-size:2rem;line-height:1.1"></div>
+      <div id="place-round-label" class="font-cinzel text-xs text-muted" style="margin-top:.2rem"></div>
+    </div>
+
+    <!-- Round 2: resource collection -->
+    <div id="place-res-area" style="display:none">
+      <div class="warn-box">📍 2nd settlement placed! Collect starting resources from adjacent hexes.</div>
+      <div class="panel-title">Starting Resources</div>
+      <div id="place-res-controls"></div>
+      <button class="btn btn-gold btn-sm" onclick="confirmPlaceRes()" style="margin-bottom:.75rem">✓ Got Resources — Continue</button>
+    </div>
+
+    <div id="place-assets-area">
+      <div class="panel-title">Assets This Player Starts With</div>
+      <div class="form-row">
+        <label class="form-label">Settlements</label>
+        <div class="qty">
+          <button class="qty-btn" onclick="adjPA('settlements',-1)">−</button>
+          <div class="qty-num" id="pa-sets">2</div>
+          <button class="qty-btn" onclick="adjPA('settlements',1)">+</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Roads</label>
+        <div class="qty">
+          <button class="qty-btn" onclick="adjPA('roads',-1)">−</button>
+          <div class="qty-num" id="pa-roads">2</div>
+          <button class="qty-btn" onclick="adjPA('roads',1)">+</button>
+        </div>
+      </div>
+      <div class="text-xs text-muted" style="margin-bottom:.75rem">Standard: 2 settlements + 2 roads. VP auto-set to match settlements.</div>
+    </div>
+
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" onclick="placeNext()">Next →</button>
+      <button class="btn btn-outline btn-sm" style="display:none" id="skip-res-btn" onclick="confirmPlaceRes()">Skip Resources</button>
+    </div>
+
+    <hr class="div">
+    <div class="panel-title">Placement Order</div>
+    <div id="place-order"></div>
+  </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ GAME SCREEN ═══════════════════ -->
+<div id="game-screen" class="screen" style="display:none">
+
+  <!-- NAVBAR -->
+  <div id="navbar">
+    <div class="nav-brand">⚜ Settlers: Capitalism</div>
+    <div class="nav-center">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+        <div class="font-cinzel" style="font-size:.6rem;color:var(--text3);letter-spacing:.15em;text-transform:uppercase">Current Turn</div>
+        <div class="nav-turn-badge">
+          <div class="nav-dot" id="nav-dot"></div>
+          <div class="nav-name" id="nav-name">—</div>
+        </div>
+      </div>
+      <div>
+        <div class="font-cinzel" style="font-size:.6rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;text-align:center">Last Roll</div>
+        <div class="nav-roll" id="nav-roll">—</div>
+      </div>
+      <div class="nav-turn-num" id="nav-turn">Turn 1</div>
+    </div>
+    <div class="nav-right">
+      <button class="btn btn-outline btn-sm" onclick="openModal('end-turn-modal')">End Turn ▶</button>
+      <button class="btn btn-outline btn-sm" style="color:var(--gold);border-color:var(--gold)" onclick="openBanker()">🏦 Banker</button>
+      <button class="btn btn-outline btn-sm" onclick="openModal('rulebook-modal')">📖 Rules</button>
+      <button class="btn btn-outline btn-sm" style="color:var(--text3);font-size:.65rem" onclick="confirmNewGame()">↩ New Game</button>
+    </div>
+  </div>
+
+  <!-- Stock Ticker -->
+  <div id="stock-ticker"><span id="ticker-inner">Loading market…</span></div>
+
+  <!-- Downturn Banner -->
+  <div id="dt-banner" style="display:none;margin:.65rem 1.25rem 0">
+    <span style="font-size:1.5rem">📉</span>
+    <div><div class="dt-lbl" id="dt-lbl">RECESSION</div><div style="font-size:.78rem;color:var(--red)">Banking/shipping/rentals suspended. No winner allowed.</div></div>
+    <div class="dt-t" id="dt-t">4</div>
+  </div>
+
+  <div class="game-body">
+
+    <!-- ── LEFT ── -->
+    <div class="left-col">
+      <div class="panel-title">Players</div>
+      <div id="player-cards"></div>
+    </div>
+
+    <!-- ── CENTER ── -->
+    <div class="center-col">
+      <!-- STEP NAV BAR -->
+      <div class="step-nav" id="step-nav">
+        <button class="step-nav-btn" id="snav-roll" onclick="tryNavStep('roll')">🎲 Roll</button>
+        <div class="step-nav-arrow">›</div>
+        <button class="step-nav-btn" id="snav-resources" onclick="tryNavStep('resources')">🌾 Resources</button>
+        <div class="step-nav-arrow">›</div>
+        <button class="step-nav-btn" id="snav-build" onclick="tryNavStep('build')">⚒ Actions</button>
+        <div class="step-nav-arrow">›</div>
+        <button class="step-nav-btn" id="snav-events" onclick="tryNavStep('events')">⚡ Events</button>
+        <div class="step-nav-arrow">›</div>
+        <button class="step-nav-btn" id="snav-summary" onclick="tryNavStep('summary')">📋 Summary</button>
+      </div>
+
+      <!-- ROLL -->
+      <div id="phase-roll" class="action-card">
+        <div class="action-title">🎲 Step 1 — Roll the Dice</div>
+        <div class="dice-area">
+          <span class="big-dice" id="big-dice">?</span>
+          <div class="text-muted text-sm" id="dice-detail">Press roll to begin your turn</div>
+          <div class="text-muted text-xs" id="dice-prev" style="margin:.3rem 0 .85rem"></div>
+          <button class="btn btn-gold" id="roll-btn" onclick="rollDice()">🎲 Roll Dice</button>
+        </div>
+        <div class="info-box">After rolling, update resources, then optionally build/trade. <strong>You never have to build.</strong></div>
+      </div>
+
+      <!-- RESOURCES -->
+      <div id="phase-resources" class="action-card" style="display:none">
+        <div class="action-title">🌾 Step 2 — Resource Distribution</div>
+        <div class="info-box">Update each player's resources from board production. <strong>Banked resources are locked and shown separately (+B).</strong> They cannot be used until withdrawn.</div>
+        <div class="form-row">
+          <label class="form-label">Player</label>
+          <select id="res-player-sel" style="flex:1" onchange="renderResControls()"></select>
+        </div>
+        <div id="res-controls"></div>
+        <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem">
+          <button class="btn btn-outline btn-sm" onclick="resetRC()">Reset</button>
+          <button class="btn btn-gold btn-sm" onclick="applyRes()">Apply</button>
+        </div>
+        <hr class="div">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
+          <div class="text-xs text-muted">Done distributing? Proceed to actions.</div>
+          <button class="btn btn-outline btn-sm" onclick="setStep('build')">Next: Actions →</button>
+        </div>
+      </div>
+
+      <!-- BUILD/TRADE/ACTIONS -->
+      <div id="phase-build" class="action-card" style="display:none">
+        <div class="action-title">⚒ Step 3 — Actions <span style="font-size:.72rem;color:var(--text3);font-family:'Crimson Pro',serif;letter-spacing:0;text-transform:none;font-weight:400">(all optional)</span></div>
+
+        <div class="tabs" id="action-tabs">
+          <div class="tab active" onclick="switchTab(this,'tab-build')">Build</div>
+          <div class="tab" onclick="switchTab(this,'tab-trade')">Trade</div>
+          <div class="tab" onclick="switchTab(this,'tab-bank')">Bank</div>
+          <div class="tab" onclick="switchTab(this,'tab-ship')">Shipping</div>
+          <div class="tab" onclick="switchTab(this,'tab-rent')">Rent</div>
+          <div class="tab" onclick="switchTab(this,'tab-gamble')">Gamble</div>
+          <div class="tab" onclick="switchTab(this,'tab-stocks')">Stocks</div>
+          <div class="tab" onclick="switchTab(this,'tab-vp')">VP</div>
+        </div>
+
+        <!-- BUILD -->
+        <div id="tab-build" class="tab-content active">
+          <div class="form-row">
+            <label class="form-label">Player</label>
+            <select id="b-player" style="flex:1"></select>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Build</label>
+            <select id="b-type" style="flex:1" onchange="updateBuildCost()">
+              <option value="">— Select —</option>
+              <option value="road">Road (1 Wood + 1 Brick)</option>
+              <option value="settlement">Settlement (1 Brick + 1 Wood + 1 Wool + 1 Grain)</option>
+              <option value="city">City — upgrade settlement (3 Ore + 2 Grain)</option>
+              <option value="devcard">Dev Card (1 Ore + 1 Wool + 1 Grain)</option>
+            </select>
+          </div>
+          <div id="b-cost" class="info-box" style="display:none"></div>
+          <div class="form-row">
+            <label class="form-label">CC Discount?</label>
+            <input type="checkbox" id="b-cc" onchange="updateBuildCost()">
+            <span class="text-sm text-muted" style="margin-left:.25rem">Ignore 1 resource cost (Credit Card)</span>
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="doBuild()">Confirm Build</button>
+        </div>
+
+        <!-- TRADE -->
+        <div id="tab-trade" class="tab-content">
+          <div class="info-box">Physical trades at the table. Update totals here. Players with overdue loans cannot trade.</div>
+          <div class="form-row">
+            <label class="form-label">Player A gives</label>
+            <select id="tr-a" style="flex:1" onchange="renderTradeA()"></select>
+          </div>
+          <div id="tr-a-ctrls"></div>
+          <div style="text-align:center;padding:.4rem 0;color:var(--text3)">⇄</div>
+          <div class="form-row">
+            <label class="form-label">Player B gives</label>
+            <select id="tr-b" style="flex:1" onchange="renderTradeB()"></select>
+          </div>
+          <div id="tr-b-ctrls"></div>
+          <button class="btn btn-gold btn-sm mt-sm" onclick="doTrade()">Confirm Trade</button>
+        </div>
+
+        <!-- BANK -->
+        <div id="tab-bank" class="tab-content">
+          <div id="dt-bank-warn" class="warn-box" style="display:none">⚠ Banking suspended during economic downturns.</div>
+          <div class="tabs">
+            <div class="tab active" onclick="switchSubTab(this,'stab-deposit','bank-sub')">Deposits</div>
+            <div class="tab" onclick="switchSubTab(this,'stab-loan','bank-sub')">Std Loan</div>
+            <div class="tab" onclick="switchSubTab(this,'stab-cc','bank-sub')">Credit Card</div>
+            <div class="tab" onclick="switchSubTab(this,'stab-repay','bank-sub')">Repay</div>
+          </div>
+
+          <!-- DEPOSITS -->
+          <div id="stab-deposit" class="tab-content active">
+            <div class="info-box">
+              <strong>Deposits are LOCKED in the bank.</strong> You cannot use them until you withdraw.<br>
+              • Protected from robber on 7 rolls<br>
+              • When 7 is rolled: +1 resource for each <em>different</em> type deposited<br>
+              • Requires debit or credit card to deposit
+            </div>
+            <div class="form-row">
+              <label class="form-label">Player</label>
+              <select id="dep-player" style="flex:1" onchange="renderDepStatus()"></select>
+            </div>
+            <div id="dep-status"></div>
+            <div class="form-row">
+              <label class="form-label">Resource</label>
+              <select id="dep-res" style="flex:1">
+                <option value="wool">Wool 🐑</option><option value="wood">Wood 🪵</option>
+                <option value="brick">Brick 🧱</option><option value="ore">Ore ⛏️</option>
+                <option value="grain">Grain 🌾</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label class="form-label">Amount</label>
+              <input type="number" id="dep-amount" min="1" value="1" style="width:70px">
+            </div>
+            <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.75rem">
+              <button class="btn btn-gold btn-sm" onclick="doDeposit()">Deposit →</button>
+              <button class="btn btn-outline btn-sm" onclick="doWithdraw('debit')">← Withdraw (Debit)</button>
+              <button class="btn btn-outline btn-sm" onclick="doWithdraw('full')">← Full Withdrawal</button>
+            </div>
+            <hr class="div">
+            <div class="panel-title">Debit Card</div>
+            <div id="debit-info"></div>
+            <button class="btn btn-outline btn-sm" id="debit-btn" onclick="toggleDebit()">Issue Debit Card</button>
+          </div>
+
+          <!-- STANDARD LOAN -->
+          <div id="stab-loan" class="tab-content">
+            <div class="info-box">
+              <strong>Standard Loan:</strong> 20% interest (rounded up), due in 5 turns.<br>
+              Repay principal in same resource, interest in any.<br>
+              Rate +5% per previous late loan.<br>
+              <strong>If late:</strong> +25% fee, cannot buy/trade/win, 3-turn wait after repayment.
+            </div>
+            <div class="form-group">
+              <label class="form-label">Player</label>
+              <select id="loan-player" style="width:100%" onchange="updateLoanCalc()"></select>
+            </div>
+            <div class="form-row">
+              <label class="form-label">Resource</label>
+              <select id="loan-res" style="flex:1" onchange="updateLoanCalc()">
+                <option value="wool">Wool</option><option value="wood">Wood</option>
+                <option value="brick">Brick</option><option value="ore">Ore</option><option value="grain">Grain</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label class="form-label">Amount</label>
+              <input type="number" id="loan-amt" min="1" value="1" style="width:70px" oninput="updateLoanCalc()">
+            </div>
+            <div id="loan-calc" class="info-box"></div>
+            <button class="btn btn-gold btn-sm" onclick="doStdLoan()">Take Loan</button>
+          </div>
+
+          <!-- CREDIT CARD -->
+          <div id="stab-cc" class="tab-content">
+            <div class="info-box">
+              <strong>Opening:</strong> Pay 3 of any one resource.<br>
+              <strong>Maintenance:</strong> 1 resource every 5 turns.<br>
+              <strong>Borrowing:</strong> 10% interest (+10% per late fee), due in 2 turns.<br>
+              <strong>Building perk:</strong> Ignore 1 resource cost per build.<br>
+              <strong>If late:</strong> +20% fee, cannot buy/trade/win, 3-turn wait after.
+            </div>
+            <div class="form-group">
+              <label class="form-label">Player</label>
+              <select id="cc-player" style="width:100%" onchange="renderCCStatus()"></select>
+            </div>
+            <div id="cc-status"></div>
+            <div id="cc-open-area">
+              <div class="form-row">
+                <label class="form-label">Pay 3 of</label>
+                <select id="cc-open-res" style="flex:1">
+                  <option value="wool">Wool</option><option value="wood">Wood</option>
+                  <option value="brick">Brick</option><option value="ore">Ore</option><option value="grain">Grain</option>
+                </select>
+              </div>
+              <button class="btn btn-blue btn-sm" onclick="openCC()">Open Credit Card</button>
+            </div>
+            <div id="cc-borrow-area" style="display:none">
+              <div class="form-row">
+                <label class="form-label">Borrow</label>
+                <select id="cc-res" style="flex:1">
+                  <option value="wool">Wool</option><option value="wood">Wood</option>
+                  <option value="brick">Brick</option><option value="ore">Ore</option><option value="grain">Grain</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label class="form-label">Amount</label>
+                <input type="number" id="cc-amt" min="1" value="1" style="width:70px" oninput="updateCCCalc()">
+              </div>
+              <div id="cc-calc" class="info-box"></div>
+              <button class="btn btn-gold btn-sm" onclick="doCCBorrow()">Borrow via Credit Card</button>
+            </div>
+          </div>
+
+          <!-- REPAY -->
+          <div id="stab-repay" class="tab-content">
+            <div class="form-group">
+              <label class="form-label">Player</label>
+              <select id="repay-player" style="width:100%" onchange="renderRepayList()"></select>
+            </div>
+            <div id="repay-list"></div>
+          </div>
+        </div>
+
+        <!-- SHIPPING -->
+        <div id="tab-ship" class="tab-content">
+          <div id="dt-ship-warn" class="warn-box" style="display:none">⚠ Shipping disabled during downturns.</div>
+          <div class="info-box">Pay in any resource <strong>except</strong> the one ordered.<br>
+            1–2 units: +1 fee | 3–6: +3 fee | 7+: +4 fee<br>
+            Standard: 4 turns | Expedited: 2 turns (double fee)
+          </div>
+          <div class="form-group">
+            <label class="form-label">Player</label>
+            <select id="ship-player" style="width:100%"></select>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Order</label>
+            <select id="ship-res" style="flex:1">
+              <option value="wool">Wool</option><option value="wood">Wood</option>
+              <option value="brick">Brick</option><option value="ore">Ore</option><option value="grain">Grain</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Qty</label>
+            <input type="number" id="ship-qty" min="1" value="1" style="width:70px" oninput="calcShipCost()">
+            <label class="form-label" style="min-width:0;margin-left:.5rem">Expedited?</label>
+            <input type="checkbox" id="ship-exp" onchange="calcShipCost()">
+          </div>
+          <div id="ship-calc" class="info-box"></div>
+          <button class="btn btn-gold btn-sm" onclick="doShip()">Place Order</button>
+          <hr class="div">
+          <div class="panel-title">Active Orders</div>
+          <div id="active-orders"></div>
+        </div>
+
+        <!-- RENT -->
+        <div id="tab-rent" class="tab-content">
+          <div id="dt-rent-warn" class="warn-box" style="display:none">⚠ Rentals disabled during downturns.</div>
+          <div class="tabs">
+            <div class="tab active" onclick="switchSubTab(this,'rtab-new','rent-sub')">New Rental</div>
+            <div class="tab" onclick="switchSubTab(this,'rtab-active','rent-sub')">Active</div>
+            <div class="tab" onclick="switchSubTab(this,'rtab-due','rent-sub')">Due Now</div>
+          </div>
+          <div id="rtab-new" class="tab-content active">
+            <div class="info-box">Settlement: 1 Wool+1 Brick / 2T | City: 1 Wood+1 Wool+1 Brick / 2T | Road Toll: 2 Wood / 3T</div>
+            <div class="form-row"><label class="form-label">Landlord</label><select id="rent-ll" style="flex:1"></select></div>
+            <div class="form-row"><label class="form-label">Tenant</label><select id="rent-ten" style="flex:1"></select></div>
+            <div class="form-row">
+              <label class="form-label">Type</label>
+              <select id="rent-type" style="flex:1">
+                <option value="settlement">Settlement (1 Wool+1 Brick/2T)</option>
+                <option value="city">City (1 Wood+1 Wool+1 Brick/2T)</option>
+                <option value="road">Road Toll (2 Wood/3T)</option>
+              </select>
+            </div>
+            <button class="btn btn-gold btn-sm" onclick="doCreateRental()">Create Agreement</button>
+          </div>
+          <div id="rtab-active" class="tab-content"><div id="rentals-list"></div></div>
+          <div id="rtab-due" class="tab-content"><div id="rent-due-list"></div></div>
+        </div>
+
+        <!-- GAMBLE -->
+        <div id="tab-gamble" class="tab-content">
+          <div class="info-box">Cost: 2 of any resource. Roll 1 die:<br>
+            1=+1 resource | 2=Pay 3 to bank | 3=+2 resources | 4=Pay 4 to bank | 5=Sell 1 settlement/city | 6=All loans +10%
+          </div>
+          <div class="form-group"><label class="form-label">Player</label><select id="gamble-player" style="width:100%"></select></div>
+          <div class="form-row">
+            <label class="form-label">Pay 2 of</label>
+            <select id="gamble-res" style="flex:1">
+              <option value="wool">Wool</option><option value="wood">Wood</option>
+              <option value="brick">Brick</option><option value="ore">Ore</option><option value="grain">Grain</option>
+            </select>
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="doGamble()">🎰 Gamble!</button>
+          <div id="gamble-result" style="margin-top:.75rem"></div>
+        </div>
+
+        <!-- STOCKS -->
+        <div id="tab-stocks" class="tab-content">
+          <div class="info-box">Resource stocks fluctuate each turn. Buy shares and sell for profit.<br>
+            <strong>Buy:</strong> Pay current price (any resources) × shares.<br>
+            <strong>Sell:</strong> Receive that resource × shares at current price.
+          </div>
+          <div id="stock-prices" style="margin-bottom:.75rem"></div>
+          <div class="form-row"><label class="form-label">Player</label><select id="stock-player" style="flex:1" onchange="updateStockCalc()"></select></div>
+          <div class="form-row">
+            <label class="form-label">Stock</label>
+            <select id="stock-res" style="flex:1" onchange="updateStockCalc()">
+              <option value="wool">Wool 🐑</option><option value="wood">Wood 🪵</option>
+              <option value="brick">Brick 🧱</option><option value="ore">Ore ⛏️</option>
+              <option value="grain">Grain 🌾</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Shares</label>
+            <input type="number" id="stock-qty" min="1" value="1" style="width:70px" oninput="updateStockCalc()">
+          </div>
+          <div id="stock-calc" class="info-box"></div>
+          <div style="display:flex;gap:.5rem">
+            <button class="btn btn-gold btn-sm" onclick="doStockBuy()">Buy</button>
+            <button class="btn btn-outline btn-sm" onclick="doStockSell()">Sell</button>
+          </div>
+          <hr class="div">
+          <div class="panel-title">Your Portfolio</div>
+          <div id="stock-portfolio"></div>
+        </div>
+
+        <!-- VP TRACKER -->
+        <div id="tab-vp" class="tab-content">
+          <div class="info-box">
+            VP Sources: Settlements (+1 each), Cities (+2 each), Longest Road (+2), Largest Army (+2), Dev Card VPs (+1 each).<br>
+            Adjust manually for dev cards and special cards below.
+          </div>
+          <div class="form-group">
+            <label class="form-label">Player</label>
+            <select id="vp-player" style="width:100%" onchange="renderVPBreakdown()"></select>
+          </div>
+          <div id="vp-breakdown"></div>
+        </div>
+
+        <hr class="div">
+        <div style="display:flex;justify-content:flex-end;gap:.5rem">
+          <button class="btn btn-outline btn-sm" onclick="setStep('events')">Next: Events →</button>
+        </div>
+      </div>
+
+      <!-- EVENTS -->
+      <div id="phase-events" class="action-card" style="display:none">
+        <div class="action-title">⚡ Step 4 — Event Resolution</div>
+        <div id="events-list"></div>
+        <hr class="div">
+        <div style="display:flex;justify-content:flex-end">
+          <button class="btn btn-outline btn-sm" onclick="setStep('summary')">Next: Summary →</button>
+        </div>
+      </div>
+
+      <!-- SUMMARY -->
+      <div id="phase-summary" class="action-card" style="display:none">
+        <div class="action-title">📋 Step 5 — Turn Summary</div>
+        <div id="summary-content"></div>
+        <hr class="div">
+        <div style="text-align:center;padding:.5rem 0">
+          <button class="btn btn-gold" style="padding:.8rem 2rem;font-size:.95rem" onclick="openModal('end-turn-modal')">End Turn — Pass Device ▶</button>
+        </div>
+      </div>
+
+    </div><!-- end center-col -->
+
+    <!-- ── RIGHT ── -->
+    <div class="right-col">
+      <div class="panel-title">Active Events</div>
+      <div id="right-events"><div class="text-muted text-xs">No active events.</div></div>
+      <hr class="div">
+      <div class="panel-title">Shipping Queue</div>
+      <div id="right-ship"><div class="text-muted text-xs">No pending orders.</div></div>
+      <hr class="div">
+      <div class="panel-title">Active Rentals</div>
+      <div id="right-rent"><div class="text-muted text-xs">No active rentals.</div></div>
+      <hr class="div">
+      <div class="panel-title">Game Log</div>
+      <div id="game-log" style="max-height:260px;overflow-y:auto"></div>
+    </div>
+
+  </div><!-- end game-body -->
+
+</div><!-- end game-screen -->
+</div><!-- end app -->
+
+<!-- NOTIFS -->
+<div id="notifs"></div>
+
+<!-- ═══════════════════ MODALS ═══════════════════ -->
+
+<!-- LOAD / NEW GAME LANDING MODAL -->
+<div class="modal-overlay" id="landing-modal" style="z-index:800">
+  <div class="modal" style="max-width:420px;text-align:center">
+    <div style="font-family:'Cinzel Decorative',serif;font-size:1.4rem;color:var(--gold2);margin-bottom:.25rem">Settlers: Capitalism</div>
+    <div style="font-family:'Cinzel',serif;font-size:.7rem;color:var(--text3);letter-spacing:.3em;text-transform:uppercase;margin-bottom:1.5rem">Digital Banker Assistant</div>
+    <div class="success-box" style="text-align:left;margin-bottom:1.25rem">
+      <div style="font-family:'Cinzel',serif;font-size:.75rem;color:var(--green2);margin-bottom:.3rem">💾 Saved Game Found</div>
+      <div id="landing-save-info" style="font-size:.82rem;color:var(--text2)"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.6rem">
+      <button class="btn btn-gold btn-full" style="font-size:.9rem;padding:.8rem" onclick="resumeGame();closeModal('landing-modal')">▶ Resume Saved Game</button>
+      <button class="btn btn-outline btn-full" style="font-size:.85rem" onclick="clearSaveAndSetup();closeModal('landing-modal')">⊕ Start New Game</button>
+    </div>
+  </div>
+</div>
+
+<!-- BANK COLLAPSE -->
+<div class="modal-overlay" id="collapse-modal">
+  <div class="modal" style="max-width:440px;text-align:center">
+    <div class="collapse-emoji">💸</div>
+    <div class="collapse-hl">BANK COLLAPSE!</div>
+    <div style="font-size:.92rem;color:var(--text3);margin-bottom:1rem">The same number was rolled twice in a row.<br>The entire financial system has imploded.</div>
+    <div class="collapse-instr">
+      <div style="font-family:'Cinzel',serif;font-size:.7rem;color:var(--red2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.65rem">⚠ Bank Manager Must Now:</div>
+      <div class="ci-item"><span>🫳</span><span><strong>Fall onto the floor.</strong> Physically. On the ground. Now.</span></div>
+      <div class="ci-item"><span>😭</span><span><strong>Cry dramatically.</strong> Wailing encouraged. Tears optional.</span></div>
+      <div class="ci-item"><span>📢</span><span><strong>Lament the downfall</strong> of the entire financial system.</span></div>
+      <div style="background:rgba(192,57,43,.2);border:1px solid var(--red);border-radius:5px;padding:.45rem;margin-top:.65rem;font-size:.78rem;color:#ff8a80;text-align:center">⚠ Failure = <strong>game ends with NO WINNER</strong></div>
+    </div>
+    <div class="font-cinzel text-xs text-gold" style="margin-bottom:.65rem;letter-spacing:.08em">Has the Bank Manager performed the ritual?</div>
+    <button class="btn btn-red btn-full" style="font-size:.88rem" onclick="confirmCollapse()">✓ Yes — floor visited. Proceed with collapse.</button>
+    <div class="text-xs text-muted" style="margin-top:.5rem">The honor system is watching.</div>
+  </div>
+</div>
+
+<!-- END TURN MODAL -->
+<div class="modal-overlay" id="end-turn-modal">
+  <div class="modal" style="max-width:380px;text-align:center">
+    <div class="modal-title" style="justify-content:center">Pass the Device</div>
+    <div class="text-muted text-sm" style="margin-bottom:.5rem">Next up:</div>
+    <div id="next-player-name" style="font-family:'Cinzel Decorative',serif;font-size:2.2rem;color:var(--gold2);margin-bottom:1rem"></div>
+    <button class="btn btn-gold btn-full" style="font-size:.92rem;padding:.85rem" onclick="confirmEndTurn()">✓ Pass Device — Start Next Turn</button>
+    <div style="margin-top:.5rem"><button class="btn btn-outline btn-sm" onclick="closeModal('end-turn-modal')">← Back</button></div>
+  </div>
+</div>
+
+<!-- PLAYER DETAIL -->
+<div class="modal-overlay" id="player-modal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-title" id="player-modal-title">Player
+      <button class="modal-close" onclick="closeModal('player-modal')">✕</button>
+    </div>
+    <div id="player-modal-body"></div>
+  </div>
+</div>
+
+<!-- BANKER MODAL -->
+<div class="modal-overlay" id="banker-modal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-title">🏦 Banker — Full Override
+      <button class="modal-close" onclick="closeModal('banker-modal')">✕</button>
+    </div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchSubTab(this,'bm-overview','bm')">Overview</div>
+      <div class="tab" onclick="switchSubTab(this,'bm-adjust','bm')">Adjust</div>
+      <div class="tab" onclick="switchSubTab(this,'bm-assets','bm')">Assets</div>
+      <div class="tab" onclick="switchSubTab(this,'bm-events','bm')">Events</div>
+    </div>
+    <div id="bm-overview" class="tab-content active">
+      <table class="sum-table" id="bm-table"></table>
+    </div>
+    <div id="bm-adjust" class="tab-content">
+      <div class="form-group">
+        <label class="form-label">Player</label>
+        <select id="bm-player" style="width:100%" onchange="renderBMadjust()"></select>
+      </div>
+      <div id="bm-adjust-area"></div>
+      <div class="form-group mt-sm">
+        <label class="form-label">Note</label>
+        <input type="text" id="bm-note" style="width:100%" placeholder="Reason for change…">
+      </div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="btn btn-gold btn-sm" onclick="applyBMadjust()">Apply Changes</button>
+        <button class="btn btn-red btn-sm" onclick="bmClearDebt()">Clear All Debt</button>
+        <button class="btn btn-outline btn-sm" onclick="bmResetPlayer()">⚠ Reset Player</button>
+      </div>
+    </div>
+    <div id="bm-assets" class="tab-content">
+      <div class="form-group">
+        <label class="form-label">Player</label>
+        <select id="bm-assets-player" style="width:100%" onchange="renderBMassets()"></select>
+      </div>
+      <div id="bm-assets-display"></div>
+    </div>
+    <div id="bm-events" class="tab-content">
+      <div class="info-box">Trigger global events visible to all players.</div>
+      <div class="form-row">
+        <label class="form-label">Event</label>
+        <select id="ev-type" style="flex:1" onchange="toggleCustomEv()">
+          <option value="crisis">Economic Crisis</option>
+          <option value="boom">Economic Boom</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Duration</label>
+        <input type="number" id="ev-dur" value="5" min="1" max="20" style="width:70px">
+        <span class="text-muted text-sm">global turns</span>
+      </div>
+      <div id="ev-custom-row" class="form-row" style="display:none">
+        <label class="form-label">Desc</label>
+        <input type="text" id="ev-custom-desc" style="flex:1" placeholder="Event description…">
+      </div>
+      <button class="btn btn-gold btn-sm" onclick="triggerEvent()">Trigger Event</button>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem">
+        <button class="btn btn-outline btn-sm" onclick="doDownturn('recession',4)">Recession (4T)</button>
+        <button class="btn btn-outline btn-sm" onclick="doDownturn('depression',7)">Depression (7T)</button>
+        <button class="btn btn-red btn-sm" onclick="endDownturn()">End Downturn</button>
+      </div>
+      <hr class="div">
+      <div class="panel-title">Active Events</div>
+      <div id="bm-events-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- RULEBOOK -->
+<div class="modal-overlay" id="rulebook-modal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-title">📖 Settlers: Capitalism — Official Rulebook v4
+      <button class="modal-close" onclick="closeModal('rulebook-modal')">✕</button>
+    </div>
+    <div class="tabs" style="flex-wrap:wrap">
+      <div class="tab active" onclick="switchSubTab(this,'rl-overview','rl')">Overview</div>
+      <div class="tab" onclick="switchSubTab(this,'rl-winning','rl')">Winning</div>
+      <div class="tab" onclick="switchSubTab(this,'rl-bank','rl')">Savings</div>
+      <div class="tab" onclick="switchSubTab(this,'rl-loans','rl')">Loans</div>
+      <div class="tab" onclick="switchSubTab(this,'rl-cc','rl')">Credit Card</div>
+      <div class="tab" onclick="switchSubTab(this,'rl-stock','rl')">Stocks</div>
+      <div class="tab" onclick="switchSubTab(this,'rl-ship','rl')">Shipping</div>
+      <div class="tab" onclick="switchSubTab(this,'rl-rent','rl')">Rentals</div>
+      <div class="tab" onclick="switchSubTab(this,'rl-events','rl')">Events</div>
+      <div class="tab" onclick="switchSubTab(this,'rl-taxes','rl')">Taxes</div>
+      <div class="tab" onclick="switchSubTab(this,'rl-disputes','rl')">⚖ Disputes</div>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div id="rl-overview" class="tab-content active"><div style="font-size:.88rem;color:var(--text2);line-height:1.75">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Goal</p>
+      <p>Be the first to reach <strong>10 Victory Points</strong> on your own turn, with no unpaid debt and no active downturn.</p>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Turn Order — Every Turn</p>
+      <p><strong>Step 1 — Roll Dice.</strong> Roll both dice. Resources are produced. Rolling the exact same total as the previous turn triggers a Bank Collapse.</p>
+      <p style="margin-top:.5rem"><strong>Step 2 — Distribute Resources.</strong> Every settlement and city on a hex matching the roll produces. Update each player's hand in the software. Banked (savings) resources are NOT affected by the robber on a 7 — only hand resources are at risk.</p>
+      <p style="margin-top:.5rem"><strong>Step 3 — Actions (all optional).</strong> In any order, you may: Build, Trade with other players, use the Bank, place Shipping orders, manage Rentals, Gamble, or buy/sell Stocks. You are never required to do any of these.</p>
+      <p style="margin-top:.5rem"><strong>Step 4 — Events.</strong> Software checks for overdue loans, upcoming payments, and active events. Resolve anything flagged.</p>
+      <p style="margin-top:.5rem"><strong>Step 5 — Summary.</strong> Review your VP, resources, and loans. If you have 10+ VP and no restrictions, declare victory now. Otherwise pass the device.</p>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Build Costs</p>
+      <p>🛣️ <strong>Road:</strong> 1 Wood + 1 Brick</p>
+      <p>🏠 <strong>Settlement:</strong> 1 Wood + 1 Brick + 1 Wool + 1 Grain</p>
+      <p>🏙️ <strong>City</strong> (upgrade a settlement): 3 Ore + 2 Grain</p>
+      <p>🃏 <strong>Dev Card:</strong> 1 Ore + 1 Wool + 1 Grain</p>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Rankings (used for taxes &amp; events)</p>
+      <p>Rankings are based on <strong>total assets</strong> — Savings + Stock value + Property value. Hand resources do NOT count.</p>
+      <p style="margin-top:.3rem">Property value: Settlement = 1 unit, City = 2 units, Road = 0 units.</p>
+      <p style="margin-top:.3rem"><strong>Rich</strong> = top 2 players by assets. <strong>Poor</strong> = lowest player. Everyone else = Middle.</p>
+    </div></div>
+
+    <!-- WINNING -->
+    <div id="rl-winning" class="tab-content"><div style="font-size:.88rem;color:var(--text2);line-height:1.75">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">How to Win</p>
+      <p>You must have <strong>10 or more VP at the start of your turn</strong> to declare victory. You cannot win at the end of someone else's turn.</p>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">VP Sources</p>
+      <p>🏠 Each Settlement = <strong>1 VP</strong></p>
+      <p>🏙️ Each City = <strong>2 VP</strong></p>
+      <p>🛣️ Longest Road (5+ roads, must be longest) = <strong>+2 VP</strong></p>
+      <p>⚔️ Largest Army (3+ knights, must be largest) = <strong>+2 VP</strong></p>
+      <p>🃏 Victory Point Dev Cards = <strong>+1 VP each</strong></p>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Win Blockers — You CANNOT win if any of these apply</p>
+      <div class="warn-box" style="margin-top:.3rem">
+        <p>❌ You have any <strong>overdue (unpaid past due date) loan</strong> of any type.</p>
+        <p style="margin-top:.3rem">❌ You are in a <strong>wait period</strong> — a 3-turn restriction imposed after paying off an overdue loan.</p>
+        <p style="margin-top:.3rem">❌ An <strong>economic downturn</strong> (Recession or Depression) is currently active. Nobody wins during a downturn.</p>
+      </div>
+      <p style="margin-top:.5rem">The software enforces all of the above automatically. If it shows WIN! on your card, you are clear. If not, the reason is shown in your summary.</p>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Bankruptcy</p>
+      <p>If you cannot pay a debt (loan interest, rent, tax, or maintenance fee), you must sell assets to the bank at half price until the debt is covered:</p>
+      <p style="margin-top:.3rem">Settlement → 2 resources (grain) | City → 3 resources | Road → 1 resource</p>
+      <p style="margin-top:.3rem">If you have no assets left, the software resets you to 1 settlement + 1 road + 3-turn wait. You are still in the game.</p>
+    </div></div>
+
+    <!-- SAVINGS / BANKING -->
+    <div id="rl-bank" class="tab-content"><div style="font-size:.88rem;color:var(--text2);line-height:1.75">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Savings Account</p>
+      <p><strong>Cost to open:</strong> 2 resources (any type, paid to the bank).</p>
+      <p style="margin-top:.3rem"><strong>Locked storage.</strong> Resources in savings <em>cannot</em> be spent, traded, or used for building until withdrawn. They are completely off limits.</p>
+      <p style="margin-top:.3rem"><strong>Safe from the robber.</strong> When a 7 is rolled, the robber only steals from hand resources. Savings are untouchable.</p>
+      <p style="margin-top:.3rem"><strong>Growth:</strong> Every 3 of <em>your own</em> turns (not global turns), you earn +1 resource per 3 resources stored, rounded down. Example: 7 stored → +2 resources added.</p>
+      <p style="margin-top:.3rem"><strong>7-roll bonus:</strong> When any player rolls a 7, you immediately receive +1 resource for each <em>different</em> type of resource you have in savings. Example: you have Wool + Ore + Grain saved → +3 resources on a 7.</p>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Debit Card</p>
+      <p><strong>Cost to open:</strong> 2 resources (paid to the bank). Issued by the Banker in the software.</p>
+      <p style="margin-top:.3rem"><strong>Maintenance:</strong> 1 resource every 3 turns. Paid automatically; if you can't pay, the banker is notified.</p>
+      <p style="margin-top:.3rem"><strong>Benefits:</strong> Allows direct withdrawal from savings at any time. Also lets you ignore 1 resource cost when building (same as Credit Card perk).</p>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Withdrawals</p>
+      <p><strong>Debit Withdrawal:</strong> Requires active debit card. Move any amount from savings to hand instantly. No extra cost beyond the card maintenance.</p>
+      <p style="margin-top:.3rem"><strong>Full Withdrawal:</strong> Take everything out at once. Cost: 1 resource of each <em>type</em> currently saved (not total amount — one per type). After a full withdrawal, you must wait 3 turns before reopening your savings account.</p>
+      <p style="margin-top:.3rem"><strong>Example:</strong> You have 4 Wool, 2 Ore, 3 Grain saved. Full withdrawal costs 1 Wool + 1 Ore + 1 Grain from your hand, and you receive all 9 saved resources.</p>
+    </div></div>
+
+    <!-- LOANS -->
+    <div id="rl-loans" class="tab-content"><div style="font-size:.88rem;color:var(--text2);line-height:1.75">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Standard Loan</p>
+      <p>Borrow any amount of a single resource type from the bank.</p>
+      <p style="margin-top:.3rem"><strong>Interest:</strong> 20%, rounded up. Example: borrow 3 Ore → owe 3 Ore + 1 any resource in interest.</p>
+      <p style="margin-top:.3rem"><strong>Due:</strong> 5 turns from when you took the loan.</p>
+      <p style="margin-top:.3rem"><strong>Repayment:</strong> Principal must be paid back in the <em>same resource you borrowed</em>. Interest can be paid in any resource.</p>
+      <p style="margin-top:.3rem"><strong>Rate penalty:</strong> Each time you miss a loan deadline in the past, your interest rate goes up by +5%. A player who has been late twice pays 30% instead of 20%.</p>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Late / Overdue</p>
+      <div class="warn-box">
+        <p>If you do not repay by the due turn, the loan becomes <strong>OVERDUE</strong>.</p>
+        <p style="margin-top:.3rem">Penalty: +25% of the principal added to what you owe.</p>
+        <p style="margin-top:.3rem">While overdue, you <strong>cannot</strong>: build, trade, buy stocks, take new loans, or win the game.</p>
+        <p style="margin-top:.3rem">After you finally repay an overdue loan, you must wait <strong>3 turns</strong> before you can win again.</p>
+        <p style="margin-top:.3rem">You also cannot take a new loan while you have any overdue loan.</p>
+      </div>
+    </div></div>
+
+    <!-- CREDIT CARD -->
+    <div id="rl-cc" class="tab-content"><div style="font-size:.88rem;color:var(--text2);line-height:1.75">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Credit Card</p>
+      <p><strong>Cost to open:</strong> Pay 3 of the same resource to the bank.</p>
+      <p style="margin-top:.3rem"><strong>Maintenance:</strong> 1 resource every 5 turns, paid automatically.</p>
+      <p style="margin-top:.3rem"><strong>Building perk:</strong> When building, if you are 1 resource short, your credit card automatically covers it — no need to borrow separately. This creates a Credit Loan.</p>
+      <p style="margin-top:.3rem"><strong>Borrowing directly:</strong> You can also borrow resources through the card at any time during your turn.</p>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Credit Loans</p>
+      <p><strong>Interest:</strong> 10% per loan. Each time you've been late in the past, future CC loans cost +10% more.</p>
+      <p style="margin-top:.3rem"><strong>Due:</strong> 2 turns (fast — plan ahead).</p>
+      <p style="margin-top:.3rem"><strong>Late penalty:</strong> +20% of the amount added to what you owe. Same win/trade/build block as standard loans. 3-turn wait after repayment.</p>
+      <p style="margin-top:.3rem"><strong>Example:</strong> You borrow 2 Brick via CC. Interest = ceil(2 × 0.10) = 1 any resource. Total to repay: 2 Brick + 1 any.</p>
+    </div></div>
+
+    <!-- STOCKS -->
+    <div id="rl-stock" class="tab-content"><div style="font-size:.88rem;color:var(--text2);line-height:1.75">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">How Stocks Work</p>
+      <p>Each resource (Wool, Wood, Brick, Ore, Grain) has a <strong>stock price</strong> shown in the market ticker. You buy shares using any resources you have, and sell shares to receive that resource back at the current price.</p>
+      <p style="margin-top:.3rem"><strong>Buying:</strong> Pay resources totaling (price × shares), rounded up. You can use any mix of resources.</p>
+      <p style="margin-top:.3rem"><strong>Selling:</strong> Receive (price × shares) of <em>that specific resource</em>, rounded down.</p>
+      <p style="margin-top:.3rem"><strong>Cannot buy</strong> if you have any overdue loan.</p>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">What Controls Stock Prices</p>
+      <p>Prices recalculate automatically after every dice roll based on four real factors. The Stocks tab shows exactly why each price moved.</p>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.75rem;margin-top:.5rem">
+        <p><strong style="color:var(--gold3)">1. Market Scarcity (biggest factor)</strong></p>
+        <p style="margin-top:.2rem">The software counts how much of each resource players are holding in their hands. Low average supply = high demand = price goes UP. High supply = price goes DOWN.</p>
+        <p style="margin-top:.3rem">Average hand &lt;1.5 per player: <span style="color:var(--green2)">+0.40</span> | 1.5–3: <span style="color:var(--green2)">+0.15</span> | 3–6: <span style="color:var(--red2)">−0.10</span> | 6+: <span style="color:var(--red2)">−0.35</span></p>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.75rem;margin-top:.4rem">
+        <p><strong style="color:var(--gold3)">2. Hoarding / Savings</strong></p>
+        <p style="margin-top:.2rem">Resources locked in savings accounts are off the open market. Every unit banked adds +0.05 upward pressure (max +0.30). Hoarders make scarce resources more expensive for everyone.</p>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.75rem;margin-top:.4rem">
+        <p><strong style="color:var(--gold3)">3. Dice Roll</strong></p>
+        <p style="margin-top:.2rem">Rolling a <strong>7</strong> causes market disruption — the robber shakes confidence, causing a random swing of ±0.30 on all resources. High-production numbers (6 and 8) slightly lower prices (−0.10) because those hexes produce often. Other numbers add small random noise.</p>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.75rem;margin-top:.4rem">
+        <p><strong style="color:var(--gold3)">4. Active Economic Events</strong></p>
+        <p style="margin-top:.2rem">Boom: <span style="color:var(--green2)">+0.25</span> all stocks | Crisis: <span style="color:var(--red2)">−0.20</span> all stocks | Recession: <span style="color:var(--red2)">−0.20</span> | Depression: <span style="color:var(--red2)">−0.40</span></p>
+      </div>
+      <p style="margin-top:.6rem;font-size:.8rem;color:var(--text3)">Strategy tip: Buy when a resource is plentiful in everyone's hands (low price). Then hoard it in savings to push the price back up before selling.</p>
+    </div></div>
+
+    <!-- SHIPPING -->
+    <div id="rl-ship" class="tab-content"><div style="font-size:.88rem;color:var(--text2);line-height:1.75">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Shipping (Global Trade)</p>
+      <p>Order any resource from the global market. You <strong>cannot pay the fee using the resource you are ordering</strong> — use anything else.</p>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Fees &amp; Delivery</p>
+      <p>1–2 units ordered: +1 resource fee</p>
+      <p>3–6 units ordered: +3 resource fee</p>
+      <p>7+ units ordered: +4 resource fee</p>
+      <p style="margin-top:.5rem"><strong>Standard delivery:</strong> 3 turns.</p>
+      <p><strong>Expedited delivery:</strong> Arrives next turn. Fee is doubled.</p>
+      <p style="margin-top:.5rem"><strong>Example:</strong> Order 4 Ore (standard). Fee = 3. Pay 3 of any non-Ore resources. Ore arrives in 3 turns.</p>
+      <hr class="div">
+      <div class="warn-box">Shipping is fully <strong>suspended during Recession and Depression</strong>. Orders already in transit are cancelled. No refunds on fees already paid.</div>
+    </div></div>
+
+    <!-- RENTALS -->
+    <div id="rl-rent" class="tab-content"><div style="font-size:.88rem;color:var(--text2);line-height:1.75">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Rental Agreements</p>
+      <p>Any two players can create a rental. The <strong>landlord</strong> owns the property; the <strong>tenant</strong> pays periodically. The tenant must actually have the resources to pay — if they can't, the banker is notified and the landlord can choose to end the agreement or wait.</p>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Rental Rates</p>
+      <p>🏠 <strong>Settlement:</strong> 1 Wool + 1 Brick, due every 2 turns.</p>
+      <p>🏙️ <strong>City:</strong> 1 Wood + 1 Wool + 1 Brick, due every 2 turns.</p>
+      <p>🛣️ <strong>Road Toll:</strong> 2 Wood, due every 3 turns. Multiple tenants can have toll agreements on the same road — each pays separately.</p>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Rules</p>
+      <p>The landlord still owns the property for VP purposes. Renting does not transfer ownership.</p>
+      <p style="margin-top:.3rem">Either player can end the agreement on their turn — but rent already due must still be paid first.</p>
+      <div class="warn-box" style="margin-top:.5rem">Rentals are <strong>suspended during downturns</strong>. No payments are collected or owed during Recession or Depression turns.</div>
+    </div></div>
+
+    <!-- EVENTS -->
+    <div id="rl-events" class="tab-content"><div style="font-size:.88rem;color:var(--text2);line-height:1.75">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Bank Collapse</p>
+      <p><strong>Trigger:</strong> Rolling the same total as the previous roll (double roll).</p>
+      <p style="margin-top:.3rem"><strong>Effects:</strong></p>
+      <p>• Everyone loses 50% of their hand resources (rounded up — worse for the rich).</p>
+      <p>• All stock prices drop 50%.</p>
+      <p>• All active loans become immediately due.</p>
+      <p>• All savings deposits are wiped.</p>
+      <p>• All shipping orders and rentals are cancelled.</p>
+      <p style="margin-top:.5rem"><strong>Downturn determination:</strong> Each player must sell 1 property OR pay 3 resources. Count how many players sell property. 2+ sellers → Depression (7 turns). 0–1 sellers → Recession (4 turns).</p>
+      <div style="background:rgba(192,57,43,.12);border:1px solid var(--red);border-radius:6px;padding:.65rem;margin-top:.5rem">
+        <p style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--red2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem">⚠ Mandatory Bank Manager Ritual</p>
+        <p>The Bank Manager must physically fall to the floor, cry dramatically, and lament the collapse out loud. Failure to perform the ritual = <strong>the game ends with no winner</strong>. This is not optional.</p>
+      </div>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Recession (4 global turns) &amp; Depression (7 global turns)</p>
+      <div class="warn-box">
+        <p>During a downturn, <strong>nobody can</strong>: take loans, use savings, use credit cards, ship orders, collect rent, or win the game.</p>
+        <p style="margin-top:.3rem">Building and trading between players are still allowed.</p>
+        <p style="margin-top:.3rem">Duration counts in <strong>full rounds</strong> (everyone takes one turn = 1 global turn).</p>
+      </div>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Economic Boom (3 global turns)</p>
+      <p>Build costs reduced by 1 resource (minimum 1). All stock prices trend upward (+0.25/turn). Triggered by Banker.</p>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Economic Crisis (3 global turns)</p>
+      <p>Each turn, Rich players must pay 2 resources to the bank OR lose all of one resource type from their hand (their choice). Stock prices trend downward (−0.20/turn). Triggered by Banker.</p>
+    </div></div>
+
+    <!-- TAXES -->
+    <div id="rl-taxes" class="tab-content"><div style="font-size:.88rem;color:var(--text2);line-height:1.75">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Tax Collection</p>
+      <p>Taxes are collected every <strong>5 global turns</strong> (every full round of all players, 5 times over). The Banker triggers collection.</p>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Tax Rates by Rank</p>
+      <p>Ranking is based on <strong>total assets</strong> (savings + stock value + property value — NOT hand resources).</p>
+      <p style="margin-top:.4rem">🟡 <strong>Rich</strong> (top 2 players): Pay <strong>2 resources per property unit</strong>. Settlement = 1 unit, City = 2 units.</p>
+      <p style="margin-top:.3rem">⚪ <strong>Middle</strong> (everyone else): Pay <strong>1 resource per property unit</strong>.</p>
+      <p style="margin-top:.3rem">🔴 <strong>Poor</strong> (lowest asset player): <strong>Exempt. Pay nothing.</strong></p>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Payment Order</p>
+      <p>Pay from hand first. If hand is insufficient, sell assets at half price. If still can't pay, forced liquidation (same as bankruptcy).</p>
+      <hr class="div">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Tax Evasion</p>
+      <p>Instead of paying, you may <strong>attempt tax evasion</strong>. Roll 1 die:</p>
+      <p style="margin-top:.3rem">🎲 1–3: Caught! Pay <strong>double</strong> the original tax amount.</p>
+      <p>🎲 4–6: Escaped! Pay <strong>nothing</strong> this tax cycle.</p>
+      <p style="margin-top:.3rem;font-size:.8rem;color:var(--text3)">High risk, high reward. Only available once per tax cycle per player.</p>
+    </div></div>
+
+    <!-- DISPUTES -->
+    <div id="rl-disputes" class="tab-content"><div style="font-size:.88rem;color:var(--text2);line-height:1.75">
+      <p style="color:var(--gold2);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">⚖ Official Dispute Rulings</p>
+      <p style="font-size:.8rem;color:var(--text3)">The software is the final authority. If the software allows or blocks an action, that ruling stands. These rulings cover common arguments.</p>
+      <hr class="div">
+
+      <div style="background:var(--bg3);border-left:3px solid var(--gold);border-radius:0 5px 5px 0;padding:.6rem .8rem;margin-bottom:.6rem">
+        <p style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--gold2);text-transform:uppercase;letter-spacing:.08em">"I should be able to win, I have 10 VP!"</p>
+        <p style="margin-top:.25rem">❌ <strong>Denied if</strong> you have any overdue loan, are in a wait period, or a downturn is active. VP alone is not enough. All three conditions must be clear simultaneously on your turn.</p>
+      </div>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--gold);border-radius:0 5px 5px 0;padding:.6rem .8rem;margin-bottom:.6rem">
+        <p style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--gold2);text-transform:uppercase;letter-spacing:.08em">"I paid my loan, the wait period is unfair."</p>
+        <p style="margin-top:.25rem">✅ <strong>The 3-turn wait is correct.</strong> Paying off an overdue loan does not immediately restore your win eligibility. The wait is the penalty for being late — not for paying. It counts down from the moment of repayment.</p>
+      </div>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--gold);border-radius:0 5px 5px 0;padding:.6rem .8rem;margin-bottom:.6rem">
+        <p style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--gold2);text-transform:uppercase;letter-spacing:.08em">"My savings should count as resources."</p>
+        <p style="margin-top:.25rem">❌ <strong>No.</strong> Savings are locked. You cannot use them for building, trading, paying loans, or rent until you withdraw them. They only count toward your asset ranking for tax purposes.</p>
+      </div>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--gold);border-radius:0 5px 5px 0;padding:.6rem .8rem;margin-bottom:.6rem">
+        <p style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--gold2);text-transform:uppercase;letter-spacing:.08em">"The robber should steal my banked resources."</p>
+        <p style="margin-top:.25rem">❌ <strong>No.</strong> Savings accounts are protected. Only hand resources can be discarded or targeted by the robber. This is a core mechanic — savings are insurance.</p>
+      </div>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--gold);border-radius:0 5px 5px 0;padding:.6rem .8rem;margin-bottom:.6rem">
+        <p style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--gold2);text-transform:uppercase;letter-spacing:.08em">"We didn't actually roll a double — it's a coincidence."</p>
+        <p style="margin-top:.25rem">✅ <strong>A double roll is a double roll.</strong> The previous turn's total is shown in the navbar. If the new roll matches it exactly, Bank Collapse triggers. Intent doesn't matter.</p>
+      </div>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--gold);border-radius:0 5px 5px 0;padding:.6rem .8rem;margin-bottom:.6rem">
+        <p style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--gold2);text-transform:uppercase;letter-spacing:.08em">"The Bank Manager refuses to do the collapse ritual."</p>
+        <p style="margin-top:.25rem">🔴 <strong>The game ends immediately with no winner.</strong> This is not a joke rule. The ritual is mandatory. Players should vote on whether the performance was sincere.</p>
+      </div>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--gold);border-radius:0 5px 5px 0;padding:.6rem .8rem;margin-bottom:.6rem">
+        <p style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--gold2);text-transform:uppercase;letter-spacing:.08em">"I want to trade during a downturn."</p>
+        <p style="margin-top:.25rem">✅ <strong>Allowed.</strong> Player-to-player trading is still permitted during Recession and Depression. What's suspended: banking, loans, savings, credit cards, shipping, and rentals.</p>
+      </div>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--gold);border-radius:0 5px 5px 0;padding:.6rem .8rem;margin-bottom:.6rem">
+        <p style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--gold2);text-transform:uppercase;letter-spacing:.08em">"Stock prices are unfair / rigged."</p>
+        <p style="margin-top:.25rem">✅ <strong>Prices are driven by actual game state.</strong> Check the Stocks tab — it shows exactly why each price moved (scarcity, hoarding, dice, events). If prices feel unfair, that's the market. Adapt.</p>
+      </div>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--gold);border-radius:0 5px 5px 0;padding:.6rem .8rem;margin-bottom:.6rem">
+        <p style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--gold2);text-transform:uppercase;letter-spacing:.08em">"Can I repay a loan early?"</p>
+        <p style="margin-top:.25rem">✅ <strong>Yes, any time during your turn.</strong> Early repayment has no penalty. Full interest still applies — you owe the same interest whether you pay on turn 1 or turn 5.</p>
+      </div>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--gold);border-radius:0 5px 5px 0;padding:.6rem .8rem;margin-bottom:.6rem">
+        <p style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--gold2);text-transform:uppercase;letter-spacing:.08em">"Can I take out a loan to pay off another loan?"</p>
+        <p style="margin-top:.25rem">✅ <strong>Yes, if neither loan is overdue.</strong> You cannot take a new loan if you already have an overdue one. But borrowing to service a non-overdue loan is a valid (if risky) strategy.</p>
+      </div>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--gold);border-radius:0 5px 5px 0;padding:.6rem .8rem;margin-bottom:.6rem">
+        <p style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--gold2);text-transform:uppercase;letter-spacing:.08em">"The rent is too high / I didn't agree to that."</p>
+        <p style="margin-top:.25rem">✅ <strong>Rental rates are fixed by the rules</strong> (shown in the Rentals tab). Both players must agree to create the agreement — but once created, the rate is fixed. Either player can end it on their turn, but current due payments must be settled first.</p>
+      </div>
+
+    </div></div>
+
+  </div>
+</div>
+
+<!-- BANKER PASSWORD -->
+<div id="bpass-overlay" style="display:none">
+  <div id="bpass-box">
+    <div style="font-family:'Cinzel Decorative',serif;font-size:1.2rem;color:var(--gold2);margin-bottom:.5rem">🏦 Banker Mode</div>
+    <div style="font-size:.85rem;color:var(--text3);margin-bottom:1rem">Enter banker password to continue.</div>
+    <input type="password" id="bpass-input" placeholder="Password…" style="width:100%;margin-bottom:.75rem" onkeydown="if(event.key==='Enter')checkBankerPass()">
+    <div id="bpass-err" class="warn-box" style="display:none">Incorrect password.</div>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn btn-gold" onclick="checkBankerPass()">Enter</button>
+      <button class="btn btn-outline" onclick="document.getElementById('bpass-overlay').style.display='none'">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- SELL ASSET MODAL (forced when can't pay) -->
+<div class="modal-overlay" id="sell-asset-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">💰 Forced Asset Sale</div>
+    <div id="sell-asset-content"></div>
+  </div>
+</div>
+
+<!-- NEW GAME CONFIRM MODAL -->
+<div class="modal-overlay" id="new-game-modal">
+  <div class="modal" style="max-width:360px;text-align:center">
+    <div class="modal-title" style="justify-content:center">⚠ Start New Game?</div>
+    <div class="warn-box">This will permanently erase the current game. This cannot be undone.</div>
+    <div style="display:flex;gap:.5rem;justify-content:center">
+      <button class="btn btn-red" onclick="doNewGame()">Yes, Erase & Start Over</button>
+      <button class="btn btn-outline" onclick="closeModal('new-game-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════════════════════
+const RES = ['wool','wood','brick','ore','grain'];
+const RC = {wool:'#4caf50',wood:'#795548',brick:'#e64a19',ore:'#607d8b',grain:'#ffc107'};
+const RI = {wool:'🐑',wood:'🪵',brick:'🧱',ore:'⛏️',grain:'🌾'};
+const PC = ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#95a5a6'];
+const BUILD_COSTS = {
+  road:{wood:1,brick:1},
+  settlement:{wood:1,brick:1,wool:1,grain:1},
+  city:{ore:3,grain:2},
+  devcard:{ore:1,wool:1,grain:1}
+};
+const RENT_COST = {settlement:{wool:1,brick:1},city:{wood:1,wool:1,brick:1},road:{wood:2}};
+const RENT_INT = {settlement:2,city:2,road:3};
+const ASSET_SELL_PRICE = {settlement:2,city:3,road:1};
+const SAVE_KEY = 'catcap4_v1';
+// Nuke any old save keys from previous versions so they never interfere
+['catcap3_v2','catcap2','catcap1','catan_cap'].forEach(k=>{try{sessionStorage.removeItem(k);}catch(e){}});
+
+// ═══════════════════════════════════════════════════
+//  AUDIO
+// ═══════════════════════════════════════════════════
+let AC;
+function getAC(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function playSound(type){
+  try{
+    const ac=getAC();if(!ac)return;
+    const o=ac.createOscillator(),g=ac.createGain();
+    o.connect(g);g.connect(ac.destination);
+    const s={
+      dice:{f:[300,420,360,520],d:.45,w:'square',v:.07},
+      coin:{f:[700,900,1100],d:.3,w:'sine',v:.09},
+      error:{f:[220,160],d:.3,w:'sawtooth',v:.06},
+      success:{f:[440,660,880],d:.45,w:'sine',v:.07},
+      click:{f:[440],d:.08,w:'sine',v:.04},
+      collapse:{f:[120,90,70,50],d:1.1,w:'sawtooth',v:.1},
+      alert:{f:[550,440,550],d:.4,w:'square',v:.06},
+    }[type]||{f:[440],d:.1,w:'sine',v:.04};
+    g.gain.setValueAtTime(s.v,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+s.d);
+    o.type=s.w;
+    s.f.forEach((f,i)=>o.frequency.setValueAtTime(f,ac.currentTime+(i*s.d/s.f.length)));
+    o.start();o.stop(ac.currentTime+s.d);
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════
+let G = {
+  players:[],
+  turnIdx:0,turnNum:1,
+  lastRoll:null,prevRoll:null,
+  step:'roll',
+  loans:[],creditCards:[],deposits:[],
+  shippingOrders:[],rentals:[],
+  events:[],downturn:null,
+  stocks:{wool:2,wood:2,brick:2,ore:2,grain:2},
+  stockReasons:{},
+  bankerId:null,bankerPass:'',
+  gameLog:[],
+  nextId:1,
+};
+
+// Temp UI state
+let rcDelta={};
+let trA={},trB={};
+let bmDelta={};
+
+// Placement state
+let PL = {order:[],idx:0,awaitingRes:false,placeAssets:{settlements:2,roads:2},placeRes:{}};
+
+// Setup players
+let setupPs = [];
+
+// ═══════════════════════════════════════════════════
+//  SAVE/LOAD
+// ═══════════════════════════════════════════════════
+function saveG(){
+  try{sessionStorage.setItem(SAVE_KEY,JSON.stringify(G));}catch(e){}
+}
+
+function loadG(){
+  try{
+    const s=sessionStorage.getItem(SAVE_KEY);
+    if(!s)return false;
+    const parsed=JSON.parse(s);
+    if(!parsed||!Array.isArray(parsed.players)||parsed.players.length<2)return false;
+    const valid=parsed.players.every(p=>
+      p&&p.id&&p.name&&p.color&&p.resources&&p.assets&&p.vpBonus&&p.stockShares
+    );
+    if(!valid){sessionStorage.removeItem(SAVE_KEY);return false;}
+    G=parsed;
+    return true;
+  }catch(e){
+    sessionStorage.removeItem(SAVE_KEY);
+    return false;
+  }
+}
+
+function hasSave(){
+  try{return !!sessionStorage.getItem(SAVE_KEY);}catch(e){return false;}
+}
+
+function clearSave(){
+  try{sessionStorage.removeItem(SAVE_KEY);}catch(e){}
+}
+
+// ═══════════════════════════════════════════════════
+//  NEW GAME FLOW
+// ═══════════════════════════════════════════════════
+function confirmNewGame(){
+  openModal('new-game-modal');
+}
+
+function doNewGame(){
+  closeModal('new-game-modal');
+  clearSave();
+  // Reset all state
+  G={players:[],turnIdx:0,turnNum:1,lastRoll:null,prevRoll:null,step:'roll',loans:[],creditCards:[],deposits:[],shippingOrders:[],rentals:[],events:[],downturn:null,stocks:{wool:2,wood:2,brick:2,ore:2,grain:2},bankerId:null,bankerPass:'',gameLog:[],nextId:1};
+  setupPs=[];
+  renderSetup();
+  switchScreen('setup-screen');
+}
+
+function resumeGame(){
+  if(!loadG()||!G.players.length)return;
+  switchScreen('game-screen');
+  populateAllSels();
+  renderGame();
+  setStep(G.step||'roll');
+  calcShipCost();updateLoanCalc();updateStockCalc();updateTicker();
+  notify('Game Restored','Session resumed.','success');
+}
+
+function clearSaveAndSetup(){
+  clearSave();
+  G={players:[],turnIdx:0,turnNum:1,lastRoll:null,prevRoll:null,step:'roll',loans:[],creditCards:[],deposits:[],shippingOrders:[],rentals:[],events:[],downturn:null,stocks:{wool:2,wood:2,brick:2,ore:2,grain:2},bankerId:null,bankerPass:'',gameLog:[],nextId:1};
+  setupPs=[];
+  renderSetup();
+}
+
+// ═══════════════════════════════════════════════════
+//  SETUP
+// ═══════════════════════════════════════════════════
+function addPlayer(){
+  const inp=document.getElementById('new-player-name');
+  const n=inp.value.trim();
+  if(!n)return;
+  playSound('click');
+  const used=setupPs.map(p=>p.color);
+  const color=PC.find(c=>!used.includes(c))||PC[setupPs.length%PC.length];
+  setupPs.push({id:'p'+Date.now()+Math.floor(Math.random()*9999),name:n,color});
+  inp.value='';
+  renderSetup();
+}
+
+function renderSetup(){
+  const list=document.getElementById('players-list');
+  if(!list)return;
+  list.innerHTML=setupPs.map((p,i)=>`
+    <div class="pentry">
+      <div class="pnum">${i+1}</div>
+      <div class="cswatch sel" style="background:${p.color}"></div>
+      <span style="flex:1;font-family:'Cinzel',serif;font-size:.88rem">${p.name}</span>
+      <div class="color-swatches">${PC.map(c=>`<div class="cswatch${p.color===c?' sel':''}" style="background:${c}" onclick="setPC(${i},'${c}')"></div>`).join('')}</div>
+      <button class="btn btn-outline btn-xs" onclick="removeP(${i})">✕</button>
+    </div>`).join('');
+
+  const sel=document.getElementById('banker-sel');
+  if(!sel)return;
+  const prev=sel.value;
+  sel.innerHTML='<option value="">— Choose —</option>'+
+    setupPs.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  // Restore previous selection if still valid
+  if(prev&&setupPs.some(p=>p.id===prev))sel.value=prev;
+}
+
+function setPC(i,c){setupPs[i].color=c;renderSetup();}
+function removeP(i){setupPs.splice(i,1);renderSetup();}
+
+function startSetup(){
+  const err=document.getElementById('setup-err');
+  err.style.display='none';
+
+  if(setupPs.length<2){
+    err.style.display='block';
+    err.textContent='Need at least 2 players.';
+    return;
+  }
+  const bId=document.getElementById('banker-sel').value;
+  if(!bId){
+    err.style.display='block';
+    err.textContent='Please choose a Bank Manager.';
+    return;
+  }
+
+  playSound('click');
+
+  G.players=setupPs.map(p=>({
+    id:p.id,name:p.name,color:p.color,
+    resources:{wool:0,wood:0,brick:0,ore:0,grain:0},
+    assets:{roads:2,settlements:2,cities:0,devCards:0},
+    vp:2,
+    vpBonus:{longestRoad:false,largestArmy:false,devCardVP:0},
+    lateStdCount:0,lateCCCount:0,
+    waitTurns:0,reopenWait:0,
+    debitCard:false,debitMainT:10,ccMainT:5,
+    stockShares:{wool:0,wood:0,brick:0,ore:0,grain:0},
+  }));
+  G.bankerId=bId;
+  G.bankerPass=document.getElementById('banker-pass').value;
+  G.stocks={wool:2,wood:2,brick:2,ore:2,grain:2};
+  G.turnIdx=0;G.turnNum=1;G.lastRoll=null;G.prevRoll=null;
+  G.loans=[];G.creditCards=[];G.deposits=[];
+  G.shippingOrders=[];G.rentals=[];G.events=[];G.downturn=null;
+  G.gameLog=[];G.nextId=1;
+
+  // Build placement order: round1 forward, round2 reverse
+  const ids=G.players.map(p=>p.id);
+  PL={
+    order:[...ids,...[...ids].reverse()],
+    idx:0,awaitingRes:false,
+    placeAssets:{settlements:2,roads:2},
+    placeRes:{}
+  };
+
+  switchScreen('placement-screen');
+  renderPlacement();
+}
+
+// ═══════════════════════════════════════════════════
+//  PLACEMENT
+// ═══════════════════════════════════════════════════
+function renderPlacement(){
+  const pid=PL.order[PL.idx];
+  const p=getP(pid);
+  if(!p)return;
+  const isR2=PL.idx>=G.players.length;
+
+  document.getElementById('place-name').textContent=p.name;
+  document.getElementById('place-name').style.color=p.color;
+  document.getElementById('place-round-label').textContent=`Round ${isR2?2:1} — Placement ${(PL.idx%G.players.length)+1}`;
+
+  if(isR2&&PL.awaitingRes){
+    document.getElementById('place-res-area').style.display='block';
+    document.getElementById('place-assets-area').style.display='none';
+    document.getElementById('skip-res-btn').style.display='';
+    renderPlaceResControls(pid);
+  } else {
+    document.getElementById('place-res-area').style.display='none';
+    document.getElementById('place-assets-area').style.display='block';
+    document.getElementById('skip-res-btn').style.display='none';
+  }
+
+  document.getElementById('pa-sets').textContent=PL.placeAssets.settlements;
+  document.getElementById('pa-roads').textContent=PL.placeAssets.roads;
+
+  const ol=document.getElementById('place-order');
+  ol.innerHTML=PL.order.map((pid2,i)=>{
+    const pl=getP(pid2);if(!pl)return'';
+    const done=i<PL.idx;
+    const cur=i===PL.idx;
+    const round=i<G.players.length?1:2;
+    return `<div style="display:flex;align-items:center;gap:.4rem;padding:.18rem 0;opacity:${done?.4:1}">
+      <div style="width:9px;height:9px;border-radius:50%;background:${pl.color}"></div>
+      <span style="font-size:.75rem;color:var(--${cur?'gold2':'text3'})">${cur?'→ ':done?'✓ ':'  '}${pl.name} (R${round})</span>
+    </div>`;
+  }).join('');
+}
+
+function renderPlaceResControls(pid){
+  if(!PL.placeRes[pid]) PL.placeRes[pid]={wool:0,wood:0,brick:0,ore:0,grain:0};
+  const c=document.getElementById('place-res-controls');
+  c.innerHTML='<div class="text-xs text-muted" style="margin-bottom:.5rem">Resources from your 2nd settlement\'s adjacent hexes:</div>'+
+    RES.map(r=>`<div class="rc-row">
+      <div class="rc-bar" style="background:${RC[r]}"></div>
+      <span class="rc-lbl">${r}</span>
+      <div class="qty">
+        <button class="qty-btn" onclick="adjPR('${pid}','${r}',-1)">−</button>
+        <div class="qty-num" id="plr-${r}">${PL.placeRes[pid][r]}</div>
+        <button class="qty-btn" onclick="adjPR('${pid}','${r}',1)">+</button>
+      </div>
+    </div>`).join('');
+}
+
+function adjPR(pid,r,d){
+  if(!PL.placeRes[pid]) PL.placeRes[pid]={wool:0,wood:0,brick:0,ore:0,grain:0};
+  PL.placeRes[pid][r]=Math.max(0,(PL.placeRes[pid][r]||0)+d);
+  const el=document.getElementById('plr-'+r);
+  if(el)el.textContent=PL.placeRes[pid][r];
+}
+
+function adjPA(f,d){
+  PL.placeAssets[f]=Math.max(0,(PL.placeAssets[f]||0)+d);
+  document.getElementById('pa-sets').textContent=PL.placeAssets.settlements;
+  document.getElementById('pa-roads').textContent=PL.placeAssets.roads;
+}
+
+function placeNext(){
+  const pid=PL.order[PL.idx];
+  const p=getP(pid);
+  if(!p)return;
+  const isR2=PL.idx>=G.players.length;
+
+  // Apply assets for this placement step
+  p.assets.settlements=PL.placeAssets.settlements;
+  p.assets.roads=PL.placeAssets.roads;
+  p.vp=p.assets.settlements+(p.assets.cities*2);
+
+  if(isR2&&!PL.awaitingRes){
+    // Round 2: prompt for starting resources before moving on
+    PL.awaitingRes=true;
+    renderPlacement();
+    return;
+  }
+
+  confirmPlaceRes();
+}
+
+function confirmPlaceRes(){
+  const pid=PL.order[PL.idx];
+  const p=getP(pid);
+  if(!p)return;
+
+  if(PL.placeRes[pid]){
+    RES.forEach(r=>{
+      const amt=PL.placeRes[pid][r]||0;
+      if(amt>0)p.resources[r]=(p.resources[r]||0)+amt;
+    });
+  }
+
+  playSound('coin');
+  PL.awaitingRes=false;
+  PL.placeRes[pid]={};
+  PL.placeAssets={settlements:2,roads:2};
+  PL.idx++;
+
+  if(PL.idx>=PL.order.length){
+    startGame();
+    return;
+  }
+  renderPlacement();
+}
+
+function startGame(){
+  playSound('success');
+  switchScreen('game-screen');
+  populateAllSels();
+  renderGame();
+  setStep('roll');
+  log('⚑ Settlers: Capitalism started! Turn 1: '+curP().name);
+  calcShipCost();updateLoanCalc();updateStockCalc();updateTicker();
+  saveG();
+}
+
+// ═══════════════════════════════════════════════════
+//  SCREEN / MODAL
+// ═══════════════════════════════════════════════════
+function switchScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.remove('active');
+    s.style.display='none';
+  });
+  const target=document.getElementById(id);
+  if(target){target.classList.add('active');target.style.display='block';}
+}
+
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+  if(id==='banker-modal')refreshBM();
+  if(id==='end-turn-modal'){
+    const n=nextP();
+    const el=document.getElementById('next-player-name');
+    if(el&&n){el.textContent=n.name;el.style.color=n.color;}
+  }
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+function openBanker(){
+  if(G.bankerPass){
+    document.getElementById('bpass-overlay').style.display='flex';
+    document.getElementById('bpass-input').value='';
+    document.getElementById('bpass-err').style.display='none';
+    setTimeout(()=>document.getElementById('bpass-input').focus(),100);
+  } else {
+    openModal('banker-modal');
+  }
+}
+function checkBankerPass(){
+  const v=document.getElementById('bpass-input').value;
+  if(v===G.bankerPass){
+    document.getElementById('bpass-overlay').style.display='none';
+    openModal('banker-modal');
+  } else {
+    document.getElementById('bpass-err').style.display='block';
+    playSound('error');
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  STEP MANAGEMENT
+// ═══════════════════════════════════════════════════
+const STEPS=['roll','resources','build','events','summary'];
+
+function tryNavStep(step){
+  const curIdx=STEPS.indexOf(G.step);
+  const targetIdx=STEPS.indexOf(step);
+  if(targetIdx<=curIdx+1){setStep(step);}
+  else{notify('Not yet','Complete the current step first.','warn');}
+}
+
+function setStep(step){
+  G.step=step;
+  STEPS.forEach(s=>{
+    const el=document.getElementById('phase-'+s);
+    if(el)el.style.display=s===step?'block':'none';
+  });
+  const curIdx=STEPS.indexOf(step);
+  STEPS.forEach((s,i)=>{
+    const btn=document.getElementById('snav-'+s);
+    if(!btn)return;
+    btn.classList.remove('active','done');
+    if(i===curIdx)btn.classList.add('active');
+    else if(i<curIdx)btn.classList.add('done');
+  });
+
+  if(step==='resources'){populateResSel();renderResControls();}
+  if(step==='build'){populateAllSels();checkDTwarns();renderActiveOrders();renderRentalsList();renderRentDue();updateStockPrices();updateStockCalc();renderVPBreakdown();}
+  if(step==='events')renderEventsPhase();
+  if(step==='summary')renderSummary();
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER GAME
+// ═══════════════════════════════════════════════════
+function renderGame(){
+  if(!G.players||!G.players.length)return;
+  renderNavbar();
+  renderPlayerCards();
+  renderRightPanel();
+  renderDTbanner();
+  updateTicker();
+  saveG();
+}
+
+function renderNavbar(){
+  const p=curP();if(!p)return;
+  document.getElementById('nav-dot').style.background=p.color;
+  document.getElementById('nav-name').textContent=p.name;
+  document.getElementById('nav-turn').textContent='Turn '+G.turnNum;
+  document.getElementById('nav-roll').textContent=G.lastRoll||'—';
+}
+
+function renderPlayerCards(){
+  const c=document.getElementById('player-cards');if(!c)return;
+  if(!G.players||!G.players.length){c.innerHTML='';return;}
+  const cur=curP();if(!cur)return;
+  c.innerHTML=G.players.map(p=>{
+    if(!p||!p.assets)return'';
+    const isMe=p.id===cur.id;
+    const loans=getLoans(p.id);
+    const hasDebt=loans.some(l=>l.overdue);
+    const rank=getRank(p.id);
+    const deps=G.deposits.filter(d=>d.playerId===p.id);
+    const banked=deps.reduce((s,d)=>s+d.amount,0);
+    const canWin=checkCanWin(p.id);
+    return `<div class="player-card${isMe?' active-turn':''}" style="${isMe?`border-left-color:${p.color}`:''}" onclick="openPlayerModal('${p.id}')">
+      <div class="pc-head">
+        <div class="res-dot" style="width:12px;height:12px;background:${p.color}"></div>
+        <div class="pc-name" style="${isMe?`color:${p.color}`:''}">
+          ${p.name}${p.id===G.bankerId?' <span style="font-size:.6rem;color:var(--text3)">[🏦]</span>':''}
+        </div>
+        <div class="pc-vp">⚑${p.vp}</div>
+      </div>
+      <div class="res-row">
+        ${RES.map(r=>{
+          const dep=getDepAmt(p.id,r);const hand=p.resources[r]||0;
+          return `<div class="res-chip"><div class="res-dot" style="background:${RC[r]}"></div>${hand}${dep>0?`<span class="banked-note">+${dep}B</span>`:''}</div>`;
+        }).join('')}
+        <div class="res-chip" style="color:var(--text3)">Σ${totalRes(p)}</div>
+      </div>
+      <div class="pc-assets">🛣️${p.assets.roads} 🏠${p.assets.settlements} 🏙️${p.assets.cities} 🃏${p.assets.devCards}</div>
+      <div class="pc-tags">
+        ${hasDebt?'<span class="tag tag-debt">DEBT</span>':''}
+        ${p.waitTurns>0?`<span class="tag tag-wait">WAIT ${p.waitTurns}</span>`:''}
+        ${rank==='rich'?'<span class="tag tag-rich">RICH</span>':rank==='poor'?'<span class="tag tag-poor">POOR</span>':''}
+        ${p.debitCard?'<span class="tag tag-bank">DEBIT</span>':''}
+        ${getCC(p.id)?'<span class="tag tag-cc">CC</span>':''}
+        ${banked>0?'<span class="tag tag-bank">DEPOSITS</span>':''}
+        ${canWin&&p.vp>=10?'<span class="tag tag-win">WIN!</span>':''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderRightPanel(){
+  const re=document.getElementById('right-events');
+  if(!G.events.length&&!G.downturn){re.innerHTML='<div class="text-muted text-xs">No active events.</div>';}
+  else{
+    re.innerHTML='';
+    if(G.downturn)re.innerHTML+=`<div class="event-card"><div class="event-title">${G.downturn.type.toUpperCase()}</div><div class="event-desc">Banking/shipping/rentals suspended. ${G.downturn.turnsRemaining}T remaining.</div></div>`;
+    G.events.forEach(e=>re.innerHTML+=`<div class="event-card"><div class="event-title">${e.type} (${e.turnsRemaining}T)</div><div class="event-desc">${e.desc}</div></div>`);
+  }
+  const rs=document.getElementById('right-ship');
+  const pending=G.shippingOrders.filter(o=>o.deliveryTurn>G.turnNum);
+  rs.innerHTML=pending.length?pending.map(o=>{const p=getP(o.playerId);if(!p)return'';return`<div class="ship-item"><span class="font-cinzel" style="font-size:.72rem">${p.name}: ${o.qty} ${RI[o.resource]}</span><br><span class="text-xs text-muted">T${o.deliveryTurn} (${o.deliveryTurn-G.turnNum}T)</span></div>`}).join(''):'<div class="text-muted text-xs">No pending orders.</div>';
+  const rr=document.getElementById('right-rent');
+  rr.innerHTML=G.rentals.length?G.rentals.map(r=>{const ll=getP(r.landlordId),ten=getP(r.tenantId);if(!ll||!ten)return'';return`<div style="font-size:.72rem;color:var(--text3);padding:.18rem 0;border-bottom:1px solid var(--border)">${ll.name}→${ten.name}: ${r.type} (T${r.nextDueTurn})</div>`}).join(''):'<div class="text-muted text-xs">No active rentals.</div>';
+  const gl=document.getElementById('game-log');
+  if(gl)gl.innerHTML=G.gameLog.slice(-50).reverse().map(l=>`<div style="font-size:.75rem;color:var(--text3);padding:.28rem 0;border-bottom:1px solid rgba(255,255,255,.04);line-height:1.35"><span style="font-family:'Cinzel',serif;font-size:.6rem;opacity:.7">T${l.t}</span> ${l.m}</div>`).join('');
+}
+
+function renderDTbanner(){
+  const b=document.getElementById('dt-banner');
+  if(G.downturn){b.style.display='flex';document.getElementById('dt-lbl').textContent=G.downturn.type.toUpperCase();document.getElementById('dt-t').textContent=G.downturn.turnsRemaining+'T';}
+  else b.style.display='none';
+}
+
+// ═══════════════════════════════════════════════════
+//  DICE
+// ═══════════════════════════════════════════════════
+function rollDice(){
+  playSound('dice');
+  const d1=Math.ceil(Math.random()*6),d2=Math.ceil(Math.random()*6),total=d1+d2;
+  G.prevRoll=G.lastRoll;G.lastRoll=total;
+  const el=document.getElementById('big-dice');
+  el.classList.add('roll-anim');setTimeout(()=>el.classList.remove('roll-anim'),520);
+  el.textContent=total;
+  document.getElementById('nav-roll').textContent=total;
+  document.getElementById('dice-detail').textContent=`⚀${d1} + ⚀${d2} = ${total}`;
+  if(G.prevRoll!==null)document.getElementById('dice-prev').textContent=`Previous: ${G.prevRoll}`;
+  const rb=document.getElementById('roll-btn');rb.disabled=true;rb.textContent='✓ Rolled '+total;
+
+  if(G.prevRoll!==null&&total===G.prevRoll){
+    setTimeout(()=>openModal('collapse-modal'),600);
+    log('🎲 DOUBLE ROLL '+total+'! BANK COLLAPSE!');
+    playSound('collapse');
+  } else {
+    log(`🎲 ${curP().name} rolled ${total} (${d1}+${d2})`);
+    if(total===7)handleSeven();
+    fluctuateStocks(total);
+    setTimeout(()=>setStep('resources'),900);
+  }
+  renderGame();
+}
+
+function handleSeven(){
+  playSound('alert');
+  notify('Seven Rolled!','Deposits safe. Checking bonuses…','warn');
+  G.players.forEach(p=>{
+    const types=[...new Set(G.deposits.filter(d=>d.playerId===p.id).map(d=>d.resource))];
+    if(types.length){
+      types.forEach(r=>p.resources[r]=(p.resources[r]||0)+1);
+      log(`7 bonus: ${p.name} +1 each: ${types.join(', ')}`);
+    }
+  });
+}
+
+function confirmCollapse(){
+  closeModal('collapse-modal');playSound('collapse');
+  log('💸 BANK COLLAPSE! All deposits lost, all loans cancelled.');
+  G.deposits=[];
+  const hadDebt=new Set(G.loans.map(l=>l.playerId));
+  G.loans=[];G.creditCards=[];
+  hadDebt.forEach(pid=>{const p=getP(pid);if(p){p.lateStdCount=(p.lateStdCount||0)+1;p.lateCCCount=(p.lateCCCount||0)+1;}});
+  G.shippingOrders=[];G.rentals=[];
+  const dt=hadDebt.size>=2?'depression':'recession';
+  G.downturn={type:dt,turnsRemaining:dt==='depression'?7:4};
+  notify('Downturn!',dt.toUpperCase()+' begins','error');
+  renderGame();setStep('resources');
+}
+
+// ═══════════════════════════════════════════════════
+//  RESOURCES
+// ═══════════════════════════════════════════════════
+function populateResSel(){
+  const s=document.getElementById('res-player-sel');if(!s)return;
+  s.innerHTML=G.players.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  const cp=curP();if(cp)s.value=cp.id;
+  if(cp&&!rcDelta[cp.id])rcDelta[cp.id]={wool:0,wood:0,brick:0,ore:0,grain:0};
+  renderResControls();
+}
+
+function renderResControls(){
+  const s=document.getElementById('res-player-sel');if(!s)return;
+  const pid=s.value;const p=getP(pid);if(!p)return;
+  if(!rcDelta[pid])rcDelta[pid]={wool:0,wood:0,brick:0,ore:0,grain:0};
+  const c=document.getElementById('res-controls');if(!c)return;
+  c.innerHTML=RES.map(r=>{
+    const dep=getDepAmt(pid,r);const d=rcDelta[pid][r]||0;
+    return `<div class="rc-row">
+      <div class="rc-bar" style="background:${RC[r]}"></div>
+      <span class="rc-lbl">${r}</span>
+      <div class="qty">
+        <button class="qty-btn" onclick="chRC('${pid}','${r}',-1)">−</button>
+        <div class="delta-n" id="rc-${r}" style="color:${d>0?'var(--green2)':d<0?'var(--red2)':'var(--gold2)'}">${d>=0?'+':''}${d}</div>
+        <button class="qty-btn" onclick="chRC('${pid}','${r}',1)">+</button>
+      </div>
+      <div class="rc-cur">Hand: ${p.resources[r]||0}${dep>0?` | Bank: ${dep}`:''}</div>
+    </div>`;
+  }).join('');
+}
+
+function chRC(pid,r,d){
+  if(!rcDelta[pid])rcDelta[pid]={wool:0,wood:0,brick:0,ore:0,grain:0};
+  rcDelta[pid][r]=(rcDelta[pid][r]||0)+d;
+  const el=document.getElementById('rc-'+r);
+  if(el){const v=rcDelta[pid][r];el.textContent=(v>=0?'+':'')+v;el.style.color=v>0?'var(--green2)':v<0?'var(--red2)':'var(--gold2)';}
+}
+
+function resetRC(){
+  const s=document.getElementById('res-player-sel');if(!s)return;
+  const pid=s.value;
+  rcDelta[pid]={wool:0,wood:0,brick:0,ore:0,grain:0};
+  renderResControls();
+}
+
+function applyRes(){
+  const s=document.getElementById('res-player-sel');if(!s)return;
+  const pid=s.value;
+  const p=getP(pid);if(!p)return;
+  const ch=rcDelta[pid]||{};let changed=[];
+  RES.forEach(r=>{if(ch[r]){p.resources[r]=Math.max(0,(p.resources[r]||0)+ch[r]);if(ch[r]!==0)changed.push(`${ch[r]>0?'+':''}${ch[r]} ${r}`);}});
+  if(changed.length){log(`${p.name}: ${changed.join(', ')}`);notify('Resources Updated',`${p.name}: ${changed.join(', ')}`,'success');playSound('coin');}
+  rcDelta[pid]={wool:0,wood:0,brick:0,ore:0,grain:0};
+  renderResControls();renderPlayerCards();
+}
+
+// ═══════════════════════════════════════════════════
+//  BUILD
+// ═══════════════════════════════════════════════════
+function updateBuildCost(){
+  const type=document.getElementById('b-type').value;
+  const useCC=document.getElementById('b-cc').checked;
+  const d=document.getElementById('b-cost');
+  if(!type){d.style.display='none';return;}
+  d.style.display='block';
+  let cost={...BUILD_COSTS[type]};
+  if(useCC){const k=Object.keys(cost)[0];if(cost[k]>1)cost[k]--;else delete cost[k];}
+  d.innerHTML='Cost: '+Object.entries(cost).map(([r,n])=>`${n} ${RI[r]} ${r}`).join(' + ')+(useCC?' <span style="color:var(--green2)">(CC discount applied)</span>':'');
+}
+
+function doBuild(){
+  const pid=document.getElementById('b-player').value;
+  const type=document.getElementById('b-type').value;
+  const useCC=document.getElementById('b-cc').checked;
+  if(!pid||!type){notify('Build Error','Choose player and structure.','warn');return;}
+  const p=getP(pid);if(!p){notify('Error','No player selected.','warn');return;}
+  if(getLoans(pid).some(l=>l.overdue)){notify('Cannot Build',`${p.name} has overdue loans — cannot buy/build.`,'error');return;}
+  if(useCC&&!getCC(pid)){notify('No CC',`${p.name} has no credit card.`,'error');return;}
+  let cost={...BUILD_COSTS[type]};
+  if(useCC){const k=Object.keys(cost)[0];if(cost[k]>1)cost[k]--;else delete cost[k];}
+  for(const[r,n] of Object.entries(cost)){if((p.resources[r]||0)<n){notify('Insufficient',`${p.name} needs ${n} ${r}, has ${p.resources[r]||0}.`,'error');return;}}
+  for(const[r,n] of Object.entries(cost))p.resources[r]-=n;
+  if(type==='road')p.assets.roads++;
+  else if(type==='settlement'){p.assets.settlements++;recalcVP(p);}
+  else if(type==='city'){if(p.assets.settlements<1){notify('Build Error','Need a settlement to upgrade to city.','error');return;}p.assets.settlements--;p.assets.cities++;recalcVP(p);}
+  else if(type==='devcard')p.assets.devCards++;
+  playSound('success');
+  log(`${p.name} built ${type}${useCC?' (CC disc)':''}`);
+  notify('Built!',`${p.name}: ${type}`,'success');
+  document.getElementById('b-type').value='';
+  document.getElementById('b-cost').style.display='none';
+  document.getElementById('b-cc').checked=false;
+  renderPlayerCards();
+}
+
+function recalcVP(p){
+  p.vp=p.assets.settlements+(p.assets.cities*2)+(p.vpBonus.longestRoad?2:0)+(p.vpBonus.largestArmy?2:0)+(p.vpBonus.devCardVP||0);
+}
+
+// ═══════════════════════════════════════════════════
+//  TRADE
+// ═══════════════════════════════════════════════════
+function renderTradeA(){
+  const pid=document.getElementById('tr-a').value;
+  const p=getP(pid);if(!pid||!p)return;
+  if(!trA[pid])trA[pid]={wool:0,wood:0,brick:0,ore:0,grain:0};
+  document.getElementById('tr-a-ctrls').innerHTML=RES.map(r=>`
+    <div class="form-row" style="gap:.3rem">
+      <div class="res-dot" style="background:${RC[r]}"></div>
+      <span style="font-size:.72rem;min-width:44px">${r}</span>
+      <div class="qty"><button class="qty-btn" onclick="chTr('a','${pid}','${r}',-1)">−</button>
+      <div class="qty-num" style="font-size:.88rem" id="tra-${r}">${trA[pid][r]||0}</div>
+      <button class="qty-btn" onclick="chTr('a','${pid}','${r}',1)">+</button></div>
+      <span class="text-xs text-muted">has:${p.resources[r]||0}</span>
+    </div>`).join('');
+}
+function renderTradeB(){
+  const pid=document.getElementById('tr-b').value;
+  const p=getP(pid);if(!pid||!p)return;
+  if(!trB[pid])trB[pid]={wool:0,wood:0,brick:0,ore:0,grain:0};
+  document.getElementById('tr-b-ctrls').innerHTML=RES.map(r=>`
+    <div class="form-row" style="gap:.3rem">
+      <div class="res-dot" style="background:${RC[r]}"></div>
+      <span style="font-size:.72rem;min-width:44px">${r}</span>
+      <div class="qty"><button class="qty-btn" onclick="chTr('b','${pid}','${r}',-1)">−</button>
+      <div class="qty-num" style="font-size:.88rem" id="trb-${r}">${trB[pid][r]||0}</div>
+      <button class="qty-btn" onclick="chTr('b','${pid}','${r}',1)">+</button></div>
+      <span class="text-xs text-muted">has:${p.resources[r]||0}</span>
+    </div>`).join('');
+}
+function chTr(side,pid,r,d){
+  const obj=side==='a'?trA:trB;
+  if(!obj[pid])obj[pid]={wool:0,wood:0,brick:0,ore:0,grain:0};
+  obj[pid][r]=Math.max(0,(obj[pid][r]||0)+d);
+  const el=document.getElementById(`tr${side}-${r}`);if(el)el.textContent=obj[pid][r];
+}
+function doTrade(){
+  const aId=document.getElementById('tr-a').value,bId=document.getElementById('tr-b').value;
+  if(!aId||!bId||aId===bId){notify('Trade Error','Choose 2 different players.','warn');return;}
+  const pa=getP(aId),pb=getP(bId);
+  if(!pa||!pb){notify('Trade Error','Player not found.','warn');return;}
+  if(getLoans(aId).some(l=>l.overdue)){notify('Cannot Trade',`${pa.name} has overdue loans.`,'error');return;}
+  if(getLoans(bId).some(l=>l.overdue)){notify('Cannot Trade',`${pb.name} has overdue loans.`,'error');return;}
+  const ag=trA[aId]||{},bg=trB[bId]||{};
+  for(const[r,n] of Object.entries(ag)){if(n&&(pa.resources[r]||0)<n){notify('Trade Error',`${pa.name} lacks ${n} ${r}.`,'error');return;}}
+  for(const[r,n] of Object.entries(bg)){if(n&&(pb.resources[r]||0)<n){notify('Trade Error',`${pb.name} lacks ${n} ${r}.`,'error');return;}}
+  RES.forEach(r=>{const a=ag[r]||0,b=bg[r]||0;pa.resources[r]=(pa.resources[r]||0)-a+b;pb.resources[r]=(pb.resources[r]||0)-b+a;});
+  const aStr=Object.entries(ag).filter(([,n])=>n>0).map(([r,n])=>`${n} ${r}`).join(', ')||'nothing';
+  const bStr=Object.entries(bg).filter(([,n])=>n>0).map(([r,n])=>`${n} ${r}`).join(', ')||'nothing';
+  playSound('coin');log(`Trade: ${pa.name} gave ${aStr} ↔ ${pb.name} gave ${bStr}`);
+  notify('Trade Complete',`${pa.name} ↔ ${pb.name}`,'success');
+  trA={};trB={};renderPlayerCards();
+}
+
+// ═══════════════════════════════════════════════════
+//  BANKING — DEPOSITS
+// ═══════════════════════════════════════════════════
+function getDepAmt(pid,r){return G.deposits.filter(d=>d.playerId===pid&&d.resource===r).reduce((s,d)=>s+d.amount,0);}
+function getDepTotal(pid){return G.deposits.filter(d=>d.playerId===pid).reduce((s,d)=>s+d.amount,0);}
+
+function renderDepStatus(){
+  const el=document.getElementById('dep-player');if(!el)return;
+  const pid=el.value;if(!pid)return;
+  const p=getP(pid);if(!p)return;
+  const deps=G.deposits.filter(d=>d.playerId===pid);
+  const c=document.getElementById('dep-status');
+  c.innerHTML=deps.length?`<div class="info-box">Banked (LOCKED): ${deps.map(d=>`${d.amount} ${RI[d.resource]} ${d.resource}`).join(', ')}<br><em style="color:var(--red2);font-size:.75rem">⚠ Cannot be used until withdrawn.</em></div>`:'<div class="text-xs text-muted mb-sm">No deposits.</div>';
+  const db=document.getElementById('debit-info');
+  const dbtn=document.getElementById('debit-btn');
+  if(db)db.innerHTML=p.debitCard?'<span class="tag tag-bank" style="display:inline-block;padding:.2rem .5rem;margin-bottom:.4rem">✓ Debit Card Active</span>':'<div class="text-xs text-muted mb-sm">No debit card issued.</div>';
+  if(dbtn)dbtn.textContent=p.debitCard?'Revoke Debit Card':'Issue Debit Card';
+}
+
+function doDeposit(){
+  if(G.downturn){notify('Downturn','No deposits during downturns.','error');return;}
+  const pid=document.getElementById('dep-player').value;
+  const r=document.getElementById('dep-res').value;
+  const amt=parseInt(document.getElementById('dep-amount').value)||1;
+  const p=getP(pid);if(!p){notify('Error','No player selected.','warn');return;}
+  if(!p.debitCard&&!getCC(pid)){notify('No Bank Card',`${p.name} needs debit or credit card to deposit.`,'error');return;}
+  if((p.resources[r]||0)<amt){notify('Insufficient',`${p.name} only has ${p.resources[r]||0} ${r}.`,'error');return;}
+  p.resources[r]-=amt;
+  const ex=G.deposits.find(d=>d.playerId===pid&&d.resource===r);
+  if(ex)ex.amount+=amt;else G.deposits.push({playerId:pid,resource:r,amount:amt});
+  playSound('coin');log(`${p.name} deposited ${amt} ${r} (LOCKED)`);
+  notify('Deposited',`${p.name}: ${amt} ${r} → bank (locked until withdrawn)`,'success');
+  renderDepStatus();renderPlayerCards();
+}
+
+function doWithdraw(method){
+  if(G.downturn){notify('Downturn','No withdrawals during downturns.','error');return;}
+  const pid=document.getElementById('dep-player').value;
+  const r=document.getElementById('dep-res').value;
+  const amt=parseInt(document.getElementById('dep-amount').value)||1;
+  const p=getP(pid);if(!p){notify('Error','No player selected.','warn');return;}
+  if(method==='debit'){
+    if(!p.debitCard){notify('No Debit Card',`${p.name} needs a debit card.`,'error');return;}
+    const dep=G.deposits.find(d=>d.playerId===pid&&d.resource===r);
+    if(!dep||dep.amount<amt){notify('Insufficient Deposit',`Not enough ${r} banked.`,'error');return;}
+    dep.amount-=amt;if(dep.amount===0)G.deposits=G.deposits.filter(d=>!(d.playerId===pid&&d.resource===r));
+    p.resources[r]=(p.resources[r]||0)+amt;
+    playSound('coin');log(`${p.name} debit withdrawal: ${amt} ${r}`);notify('Withdrawn',`${p.name}: ${amt} ${r} in hand`,'success');
+  } else {
+    const deps=G.deposits.filter(d=>d.playerId===pid);
+    if(!deps.length){notify('No Deposits','Nothing to withdraw.','warn');return;}
+    if(p.reopenWait>0){notify('Reopen Wait',`Must wait ${p.reopenWait} more turns to reopen account.`,'error');return;}
+    const types=[...new Set(deps.map(d=>d.resource))];
+    for(const t of types){if((p.resources[t]||0)<1){notify('Cannot Withdraw',`Full withdrawal costs 1 of each deposited type. Missing ${t}.`,'error');return;}}
+    types.forEach(t=>p.resources[t]--);
+    deps.forEach(d=>p.resources[d.resource]=(p.resources[d.resource]||0)+d.amount);
+    G.deposits=G.deposits.filter(d=>d.playerId!==pid);p.reopenWait=3;
+    playSound('coin');log(`${p.name} full withdrawal (cost 1 each type, 3T reopen wait)`);notify('Full Withdrawal',`${p.name} withdrew all. Reopen in 3 turns.`,'success');
+  }
+  renderDepStatus();renderPlayerCards();
+}
+
+function toggleDebit(){
+  const el=document.getElementById('dep-player');if(!el)return;
+  const pid=el.value;const p=getP(pid);if(!p)return;
+  p.debitCard=!p.debitCard;
+  if(p.debitCard)p.debitMainT=G.turnNum+10;
+  playSound('click');log(`[BANKER] ${p.name} debit card: ${p.debitCard?'issued':'revoked'}`);
+  notify('Debit Card',`${p.name}: ${p.debitCard?'✓ Issued':'Revoked'}`,'success');
+  renderDepStatus();renderPlayerCards();
+}
+
+// ═══════════════════════════════════════════════════
+//  LOANS
+// ═══════════════════════════════════════════════════
+function getLoanRate(pid,type){
+  const p=getP(pid);if(!p)return type==='standard'?0.20:0.10;
+  return type==='standard'?0.20+(p.lateStdCount||0)*0.05:0.10+(p.lateCCCount||0)*0.10;
+}
+
+function updateLoanCalc(){
+  const el=document.getElementById('loan-player');if(!el)return;
+  const pid=el.value;
+  const amtEl=document.getElementById('loan-amt');
+  const rEl=document.getElementById('loan-res');
+  const calc=document.getElementById('loan-calc');
+  if(!pid||!amtEl||!rEl||!calc)return;
+  const amt=parseInt(amtEl.value)||1;
+  const r=rEl.value||'wool';
+  const rate=getLoanRate(pid,'standard');
+  const interest=Math.ceil(amt*rate);
+  calc.innerHTML=`Rate: ${Math.round(rate*100)}% | Interest: ${interest} (any resource)<br>Repay: ${amt} ${r} + ${interest} any | Due T${G.turnNum+5}`;
+}
+
+function doStdLoan(){
+  if(G.downturn){notify('Downturn','No loans during downturns.','error');return;}
+  const pid=document.getElementById('loan-player').value;
+  const r=document.getElementById('loan-res').value;
+  const amt=parseInt(document.getElementById('loan-amt').value)||1;
+  const p=getP(pid);if(!p){notify('Error','No player selected.','warn');return;}
+  if(getLoans(pid).some(l=>l.overdue)){notify('Cannot Borrow',`${p.name} has overdue loans.`,'error');return;}
+  const rate=getLoanRate(pid,'standard');
+  G.loans.push({id:'L'+(G.nextId++),playerId:pid,type:'standard',resource:r,amount:amt,interest:rate,dueOnTurn:G.turnNum+5,overdue:false});
+  p.resources[r]=(p.resources[r]||0)+amt;
+  playSound('coin');log(`${p.name} std loan: ${amt} ${r} @ ${Math.round(rate*100)}% due T${G.turnNum+5}`);
+  notify('Loan Taken',`${p.name}: ${amt} ${r}`,'success');renderPlayerCards();
+}
+
+function getCC(pid){return G.creditCards.find(c=>c.playerId===pid);}
+
+function renderCCStatus(){
+  const el=document.getElementById('cc-player');if(!el)return;
+  const pid=el.value;if(!pid)return;
+  const cc=getCC(pid);
+  document.getElementById('cc-status').innerHTML=cc?`<div class="success-box">✓ CC Active — ${Math.round(getLoanRate(pid,'credit')*100)}% rate | Maint T${cc.mainT}</div>`:'<div class="text-xs text-muted mb-sm">No credit card.</div>';
+  document.getElementById('cc-open-area').style.display=cc?'none':'block';
+  document.getElementById('cc-borrow-area').style.display=cc?'block':'none';
+  updateCCCalc();
+}
+
+function openCC(){
+  if(G.downturn){notify('Downturn','No CC during downturns.','error');return;}
+  const pid=document.getElementById('cc-player').value;
+  const r=document.getElementById('cc-open-res').value;
+  if(getCC(pid)){notify('Already Has','Player already has a credit card.','warn');return;}
+  const p=getP(pid);if(!p){notify('Error','No player selected.','warn');return;}
+  if((p.resources[r]||0)<3){notify('Insufficient',`Need 3 ${r} to open CC.`,'error');return;}
+  p.resources[r]-=3;
+  G.creditCards.push({playerId:pid,mainT:G.turnNum+5,lateCount:p.lateCCCount||0});
+  playSound('success');log(`${p.name} opened CC (paid 3 ${r})`);notify('CC Opened!',`${p.name}'s credit card active`,'success');
+  renderCCStatus();renderPlayerCards();
+}
+
+function updateCCCalc(){
+  const el=document.getElementById('cc-player');if(!el)return;
+  const pid=el.value;
+  const amtEl=document.getElementById('cc-amt');
+  const rEl=document.getElementById('cc-res');
+  const calc=document.getElementById('cc-calc');
+  if(!pid||!amtEl||!rEl||!calc)return;
+  const amt=parseInt(amtEl.value)||1;
+  const r=rEl.value||'wool';
+  const rate=getLoanRate(pid,'credit');
+  const interest=Math.ceil(amt*rate);
+  calc.innerHTML=`Rate: ${Math.round(rate*100)}% | Interest: ${interest} (any) | Due T${G.turnNum+2}`;
+}
+
+function doCCBorrow(){
+  if(G.downturn){notify('Downturn','No CC borrowing during downturns.','error');return;}
+  const pid=document.getElementById('cc-player').value;
+  const r=document.getElementById('cc-res').value;
+  const amt=parseInt(document.getElementById('cc-amt').value)||1;
+  if(!getCC(pid)){notify('No CC','Player needs CC first.','error');return;}
+  if(getLoans(pid,'credit').some(l=>l.overdue)){const pp=getP(pid);notify('Cannot Borrow',pp?`${pp.name} has overdue CC balance.`:'Overdue CC balance.','error');return;}
+  const p=getP(pid);if(!p)return;const rate=getLoanRate(pid,'credit');
+  G.loans.push({id:'CC'+(G.nextId++),playerId:pid,type:'credit',resource:r,amount:amt,interest:rate,dueOnTurn:G.turnNum+2,overdue:false});
+  p.resources[r]=(p.resources[r]||0)+amt;
+  playSound('coin');log(`${p.name} CC borrow: ${amt} ${r} @ ${Math.round(rate*100)}% due T${G.turnNum+2}`);
+  notify('CC Borrowed',`${p.name}: ${amt} ${r}`,'success');renderPlayerCards();
+}
+
+function renderRepayList(){
+  const el=document.getElementById('repay-player');if(!el)return;
+  const pid=el.value;
+  const c=document.getElementById('repay-list');if(!pid||!c)return;
+  const loans=getLoans(pid);
+  if(!loans.length){c.innerHTML='<div class="text-xs text-muted">No active loans.</div>';return;}
+  c.innerHTML=loans.map(l=>{
+    const amt=l.amount||0;
+    const res=l.resource||'?';
+    const rate=l.interest||0;
+    const interest=Math.ceil(amt*rate);
+    const penalty=l.overdue?Math.ceil(amt*(l.type==='credit'?0.20:0.25)):0;
+    const turnsLeft=(l.dueOnTurn||0)-G.turnNum;
+    return `<div class="loan-card${l.overdue?' overdue':''}">
+      <div class="loan-h">
+        <div class="loan-amt">${amt} ${RI[res]||''} ${res}</div>
+        <div class="loan-type">${l.type||'loan'}</div>
+        ${l.overdue?'<span class="tag tag-debt">OVERDUE</span>':`<span class="text-xs text-muted">${turnsLeft}T left</span>`}
+      </div>
+      <div class="loan-sub">Repay: ${amt} ${res} + ${interest+penalty} any resource${penalty?` (+${penalty} penalty)`:''}.</div>
+      <button class="btn btn-green btn-xs" style="margin-top:.35rem" onclick="repayLoan('${l.id}')">✓ Repay</button>
+    </div>`;
+  }).join('');
+}
+
+function repayLoan(lId){
+  const loan=G.loans.find(l=>l.id===lId);if(!loan)return;
+  const p=getP(loan.playerId);if(!p)return;
+  const interest=Math.ceil(loan.amount*loan.interest);
+  const penalty=loan.overdue?Math.ceil(loan.amount*(loan.type==='credit'?0.20:0.25)):0;
+  const totalInt=interest+penalty;
+  if((p.resources[loan.resource]||0)<loan.amount){notify('Cannot Repay',`${p.name} needs ${loan.amount} ${loan.resource} for principal.`,'error');return;}
+  p.resources[loan.resource]-=loan.amount;
+  let left=totalInt;
+  for(const r of RES){if(left<=0)break;const t=Math.min(left,p.resources[r]||0);p.resources[r]-=t;left-=t;}
+  if(left>0){
+    openForcedSale(p.id,left,`Cannot pay interest. Must sell assets.`,()=>{});
+    return;
+  }
+  if(loan.overdue)p.waitTurns=3;
+  G.loans=G.loans.filter(l=>l.id!==lId);
+  playSound('success');log(`${p.name} repaid ${loan.type}: ${loan.amount} ${loan.resource} + ${totalInt} int`);
+  notify('Loan Repaid!',`${p.name} cleared.`,'success');renderPlayerCards();renderRepayList();
+}
+
+function openForcedSale(pid,needed,reason,callback){
+  const p=getP(pid);if(!p)return;
+  const c=document.getElementById('sell-asset-content');
+  const modal=document.getElementById('sell-asset-modal');
+  c.innerHTML=`<div class="warn-box">${reason}<br>Still owe: <strong>${needed} resources</strong>.</div>
+    <div class="panel-title">Sell Assets (half price)</div>
+    ${p.assets.settlements>0?`<div class="form-row"><span style="flex:1;font-size:.85rem">Settlement (yields 2 resources)</span><button class="btn btn-red btn-sm" onclick="sellAsset('${pid}','settlement',${needed})">Sell</button></div>`:''}
+    ${p.assets.cities>0?`<div class="form-row"><span style="flex:1;font-size:.85rem">City (yields 3 resources)</span><button class="btn btn-red btn-sm" onclick="sellAsset('${pid}','city',${needed})">Sell</button></div>`:''}
+    ${p.assets.roads>0?`<div class="form-row"><span style="flex:1;font-size:.85rem">Road (yields 1 resource)</span><button class="btn btn-red btn-sm" onclick="sellAsset('${pid}','road',${needed})">Sell</button></div>`:''}
+    ${p.assets.settlements===0&&p.assets.cities===0&&p.assets.roads===0?`<div class="warn-box">No assets left! Player resets to minimum state.</div><button class="btn btn-red btn-full" onclick="playerReset('${pid}')">⚠ Reset Player</button>`:''}
+    <button class="btn btn-outline btn-sm" style="margin-top:.5rem" onclick="closeModal('sell-asset-modal')">Close</button>`;
+  modal.classList.add('open');
+}
+
+function sellAsset(pid,type,needed){
+  const p=getP(pid);if(!p)return;
+  const gain=ASSET_SELL_PRICE[type]||1;
+  p.resources.grain=(p.resources.grain||0)+gain;
+  if(type==='settlement'&&p.assets.settlements>0){p.assets.settlements--;recalcVP(p);}
+  else if(type==='city'&&p.assets.cities>0){p.assets.cities--;p.assets.settlements++;recalcVP(p);}
+  else if(type==='road'&&p.assets.roads>0)p.assets.roads--;
+  playSound('error');log(`${p.name} sold ${type} (received ${gain} resources)`);
+  notify('Asset Sold',`${p.name}: sold ${type} for ${gain} resource(s)`,'warn');
+  closeModal('sell-asset-modal');renderPlayerCards();
+}
+
+function playerReset(pid){
+  const p=getP(pid);if(!p)return;
+  p.resources={wool:0,wood:0,brick:0,ore:0,grain:0};
+  p.assets={roads:1,settlements:1,cities:0,devCards:0};
+  p.vp=1;p.waitTurns=3;
+  G.loans=G.loans.filter(l=>l.playerId!==pid);
+  G.deposits=G.deposits.filter(d=>d.playerId!==pid);
+  G.creditCards=G.creditCards.filter(c=>c.playerId!==pid);
+  playSound('collapse');log(`[RESET] ${p.name} reset to minimal state.`);
+  notify('Player Reset',p.name,'error');
+  closeModal('sell-asset-modal');renderPlayerCards();
+}
+
+// ═══════════════════════════════════════════════════
+//  SHIPPING
+// ═══════════════════════════════════════════════════
+function calcShipCost(){
+  const qtyEl=document.getElementById('ship-qty');
+  const expEl=document.getElementById('ship-exp');
+  const el=document.getElementById('ship-calc');
+  if(!qtyEl||!el)return;
+  const qty=parseInt(qtyEl.value)||1;
+  const exp=expEl?expEl.checked:false;
+  let fee=qty<=2?1:qty<=6?3:4;
+  if(exp)fee*=2;
+  el.innerHTML=`Fee: ${fee} resources (any EXCEPT ordered type) | Arrives T${G.turnNum+(exp?2:4)}`;
+}
+
+function doShip(){
+  if(G.downturn){notify('Downturn','Shipping disabled.','error');return;}
+  const pid=document.getElementById('ship-player').value;
+  const r=document.getElementById('ship-res').value;
+  const qty=parseInt(document.getElementById('ship-qty').value)||1;
+  const exp=document.getElementById('ship-exp').checked;
+  const p=getP(pid);if(!p){notify('Error','No player selected.','warn');return;}
+  let fee=qty<=2?1:qty<=6?3:4;if(exp)fee*=2;
+  const payable=RES.filter(x=>x!==r);
+  let left=fee;for(const x of payable){if(left<=0)break;left-=Math.min(left,p.resources[x]||0);}
+  if(left>0){notify('Insufficient',`${p.name} can't pay shipping fee of ${fee}.`,'error');return;}
+  left=fee;for(const x of payable){if(left<=0)break;const t=Math.min(left,p.resources[x]||0);p.resources[x]-=t;left-=t;}
+  const dT=G.turnNum+(exp?2:4);
+  G.shippingOrders.push({id:'S'+(G.nextId++),playerId:pid,resource:r,qty,deliveryTurn:dT,expedited:exp});
+  playSound('coin');log(`${p.name} ordered ${qty} ${r} (T${dT})`);notify('Order Placed!',`${qty} ${r} → T${dT}`,'success');
+  renderPlayerCards();renderActiveOrders();renderRightPanel();
+}
+
+function renderActiveOrders(){
+  const c=document.getElementById('active-orders');if(!c)return;
+  c.innerHTML=G.shippingOrders.length?G.shippingOrders.map(o=>{const p=getP(o.playerId);if(!p)return'';return`<div class="ship-item"><span class="font-cinzel" style="font-size:.72rem">${p.name}: ${o.qty} ${RI[o.resource]}</span><br><span class="text-xs text-muted">Arrives T${o.deliveryTurn}</span></div>`}).join(''):'<div class="text-xs text-muted">No active orders.</div>';
+}
+
+function deliverShipping(){
+  G.shippingOrders.filter(o=>o.deliveryTurn<=G.turnNum).forEach(o=>{
+    const p=getP(o.playerId);if(!p)return;
+    p.resources[o.resource]=(p.resources[o.resource]||0)+o.qty;
+    log(`📦 ${p.name} received ${o.qty} ${o.resource} (shipment)`);notify('Shipment!',`${p.name}: +${o.qty} ${o.resource}`,'success');
+  });
+  G.shippingOrders=G.shippingOrders.filter(o=>o.deliveryTurn>G.turnNum);
+}
+
+// ═══════════════════════════════════════════════════
+//  RENTALS
+// ═══════════════════════════════════════════════════
+function doCreateRental(){
+  if(G.downturn){notify('Downturn','Rentals disabled.','error');return;}
+  const ll=document.getElementById('rent-ll').value,ten=document.getElementById('rent-ten').value,type=document.getElementById('rent-type').value;
+  if(!ll||!ten||ll===ten){notify('Rental Error','Choose different landlord/tenant.','warn');return;}
+  const llp=getP(ll),tenp=getP(ten);
+  if(!llp||!tenp){notify('Error','Player not found.','warn');return;}
+  G.rentals.push({id:'R'+(G.nextId++),landlordId:ll,tenantId:ten,type,nextDueTurn:G.turnNum+RENT_INT[type]});
+  playSound('click');log(`Rental: ${llp.name} → ${tenp.name}: ${type}`);notify('Rental Created','','success');
+  renderRentalsList();renderRightPanel();
+}
+
+function renderRentalsList(){
+  const c=document.getElementById('rentals-list');if(!c)return;
+  c.innerHTML=G.rentals.length?G.rentals.map(r=>{
+    const ll=getP(r.landlordId),ten=getP(r.tenantId);
+    if(!ll||!ten)return'';
+    return `<div class="rental-item"><div class="rental-info"><div class="rental-title">${ll.name} → ${ten.name}: ${r.type}</div><div class="rental-sub">Next due T${r.nextDueTurn}</div></div><button class="btn btn-outline btn-xs" onclick="endRental('${r.id}')">End</button></div>`;
+  }).join(''):'<div class="text-xs text-muted">No active rentals.</div>';
+}
+
+function endRental(id){
+  G.rentals=G.rentals.filter(x=>x.id!==id);
+  log(`Rental ended`);notify('Rental Ended','','warn');renderRentalsList();renderRightPanel();
+}
+
+function renderRentDue(){
+  const c=document.getElementById('rent-due-list');if(!c)return;
+  const due=G.rentals.filter(r=>r.nextDueTurn<=G.turnNum);
+  c.innerHTML=due.length?due.map(r=>{
+    const ll=getP(r.landlordId),ten=getP(r.tenantId),cost=RENT_COST[r.type];
+    if(!ll||!ten)return'';
+    return `<div class="rental-item"><div class="rental-info"><div class="rental-title">${ten.name} owes ${ll.name}</div><div class="rental-sub">${Object.entries(cost).map(([x,n])=>`${n} ${x}`).join(' + ')} (${r.type})</div></div><button class="btn btn-green btn-xs" onclick="payRent('${r.id}')">Pay</button></div>`;
+  }).join(''):'<div class="text-xs text-muted">No rent currently due.</div>';
+}
+
+function payRent(id){
+  const rental=G.rentals.find(r=>r.id===id);if(!rental)return;
+  const ten=getP(rental.tenantId),ll=getP(rental.landlordId),cost=RENT_COST[rental.type];
+  if(!ten||!ll){notify('Error','Player not found.','warn');return;}
+  for(const[r,n] of Object.entries(cost)){if((ten.resources[r]||0)<n){notify('Cannot Pay Rent',`${ten.name} lacks ${n} ${r}.`,'error');return;}}
+  for(const[r,n] of Object.entries(cost)){ten.resources[r]-=n;ll.resources[r]=(ll.resources[r]||0)+n;}
+  rental.nextDueTurn+=RENT_INT[rental.type];
+  playSound('coin');log(`Rent: ${ten.name} → ${ll.name}`);notify('Rent Paid','','success');renderRentDue();renderPlayerCards();
+}
+
+function processRentals(){
+  G.rentals.filter(r=>r.nextDueTurn<=G.turnNum).forEach(r=>{
+    const ten=getP(r.tenantId),ll=getP(r.landlordId),cost=RENT_COST[r.type];
+    if(!ten||!ll)return;
+    let ok=true;for(const[x,n] of Object.entries(cost)){if((ten.resources[x]||0)<n){ok=false;break;}}
+    if(ok){for(const[x,n] of Object.entries(cost)){ten.resources[x]-=n;ll.resources[x]=(ll.resources[x]||0)+n;}r.nextDueTurn+=RENT_INT[r.type];log(`Auto-rent: ${ten.name} → ${ll.name}`);}
+    else{notify('Rent Due!',`${ten.name} can't pay rent to ${ll.name}!`,'error');log(`⚠ ${ten.name} CANNOT pay rent to ${ll.name}`);}
+  });
+}
+
+// ═══════════════════════════════════════════════════
+//  GAMBLE
+// ═══════════════════════════════════════════════════
+function doGamble(){
+  const pid=document.getElementById('gamble-player').value;
+  const r=document.getElementById('gamble-res').value;
+  const p=getP(pid);if(!p){notify('Error','No player selected.','warn');return;}
+  if((p.resources[r]||0)<2){notify('Insufficient',`Need 2 ${r} to gamble.`,'error');return;}
+  p.resources[r]-=2;
+  const roll=Math.ceil(Math.random()*6);playSound('dice');
+  const outcomes=[
+    ()=>{const x=RES[Math.floor(Math.random()*5)];p.resources[x]++;return`Rolled 1: Gained 1 ${RI[x]} ${x}!`;},
+    ()=>{let l=3;RES.forEach(x=>{const t=Math.min(l,p.resources[x]||0);p.resources[x]-=t;l-=t;});return`Rolled 2: Paid 3 to bank.`;},
+    ()=>{const x=RES[Math.floor(Math.random()*5)];const y=RES[Math.floor(Math.random()*5)];p.resources[x]++;p.resources[y]++;return`Rolled 3: Gained ${RI[x]}+${RI[y]}!`;},
+    ()=>{let l=4;RES.forEach(x=>{const t=Math.min(l,p.resources[x]||0);p.resources[x]-=t;l-=t;});return`Rolled 4: Paid 4 to bank.`;},
+    ()=>`Rolled 5: Must sell 1 settlement or city! Use Banker mode to record.`,
+    ()=>{G.loans.forEach(l=>l.interest+=0.10);return`Rolled 6: All loans +10% interest rate!`;}
+  ];
+  const msg=outcomes[roll-1]();
+  document.getElementById('gamble-result').innerHTML=`<div class="${[1,3].includes(roll)?'success-box':'warn-box'}" style="text-align:center">🎰 ${msg}</div>`;
+  log(`${p.name} gambled → ${msg}`);notify('Gamble!',`Rolled ${roll}`,[1,3].includes(roll)?'success':'warn');renderPlayerCards();
+}
+
+// ═══════════════════════════════════════════════════
+//  STOCKS — scarcity-driven price logic
+// ═══════════════════════════════════════════════════
+
+// Calculate total supply of each resource across all player hands
+function calcSupply(){
+  const supply={wool:0,wood:0,brick:0,ore:0,grain:0};
+  G.players.forEach(p=>{RES.forEach(r=>{supply[r]+=(p.resources[r]||0);});});
+  return supply;
+}
+
+// Calculate total savings/deposits per resource (banked = hoarded = scarce on market)
+function calcBanked(){
+  const banked={wool:0,wood:0,brick:0,ore:0,grain:0};
+  G.deposits.forEach(d=>{banked[d.resource]=(banked[d.resource]||0)+d.amount;});
+  return banked;
+}
+
+function fluctuateStocks(diceTotal){
+  const supply=calcSupply();
+  const banked=calcBanked();
+  const reasons={};
+
+  RES.forEach(r=>{
+    let delta=0;
+    const parts=[];
+
+    // 1. SCARCITY: total in hands. High supply → price down, low supply → price up
+    const totalHand=supply[r]||0;
+    const avgHand=G.players.length>0?totalHand/G.players.length:0;
+    const scarcityDelta= avgHand<1.5 ? +0.4 : avgHand<3 ? +0.15 : avgHand<6 ? -0.1 : -0.35;
+    delta+=scarcityDelta;
+    if(scarcityDelta>0) parts.push(`scarce in market (+${scarcityDelta.toFixed(2)})`);
+    else parts.push(`abundant in market (${scarcityDelta.toFixed(2)})`);
+
+    // 2. HOARDING: banked resources are off-market, adds scarcity pressure
+    const bankedAmt=banked[r]||0;
+    if(bankedAmt>0){
+      const hoardDelta=Math.min(0.3, bankedAmt*0.05);
+      delta+=hoardDelta;
+      parts.push(`${bankedAmt} hoarded in savings (+${hoardDelta.toFixed(2)})`);
+    }
+
+    // 3. DICE ROLL: 7 causes volatility (robber disrupts market)
+    if(diceTotal===7){
+      const robberDelta=(Math.random()-.5)*0.6;
+      delta+=robberDelta;
+      parts.push(`robber volatility (${robberDelta>=0?'+':''}${robberDelta.toFixed(2)})`);
+    } else {
+      // Numbers 6,8 (most rolled) → high production of those hexes → slight downward pressure
+      const highRoll=[6,8].includes(diceTotal);
+      const rollDelta=highRoll ? -0.1 : (Math.random()-.48)*0.15;
+      delta+=rollDelta;
+      if(highRoll) parts.push(`high-production roll (${rollDelta.toFixed(2)})`);
+      else if(Math.abs(rollDelta)>0.03) parts.push(`dice noise (${rollDelta>=0?'+':''}${rollDelta.toFixed(2)})`);
+    }
+
+    // 4. ACTIVE EVENTS
+    const hasBoom=G.events.some(e=>e.type==='boom');
+    const hasCrisis=G.events.some(e=>e.type==='crisis');
+    if(hasBoom){delta+=0.25;parts.push('economic boom (+0.25)');}
+    if(hasCrisis){delta-=0.2;parts.push('economic crisis (−0.20)');}
+    if(G.downturn){
+      const dtDelta=G.downturn.type==='depression'?-0.4:-0.2;
+      delta+=dtDelta;
+      parts.push(`${G.downturn.type} (${dtDelta.toFixed(2)})`);
+    }
+
+    const oldPrice=G.stocks[r]||2;
+    G.stocks[r]=Math.max(0.5,Math.min(9,+(oldPrice+delta).toFixed(1)));
+    reasons[r]={old:oldPrice,new:G.stocks[r],delta:+(delta).toFixed(2),parts};
+  });
+
+  // Store last reasons for display
+  G.stockReasons=reasons;
+  updateTicker();
+  return reasons;
+}
+
+function updateTicker(){
+  const el=document.getElementById('ticker-inner');if(!el)return;
+  const reasons=G.stockReasons||{};
+  el.textContent='⚜ RESOURCE MARKET ⚜  '+RES.map(r=>{
+    const price=G.stocks[r]||2;
+    const info=reasons[r];
+    const arrow=info?(info.delta>0?'▲':'▼'):'·';
+    return `${RI[r]||''} ${r.toUpperCase()} ${price.toFixed(1)} ${arrow}`;
+  }).join('   ·   ')+'   ⚜ TURN '+G.turnNum+' ⚜';
+}
+
+function updateStockPrices(){
+  const c=document.getElementById('stock-prices');if(!c)return;
+  const reasons=G.stockReasons||{};
+  c.innerHTML='<div style="margin-bottom:.6rem">'+
+    RES.map(r=>{
+      const price=G.stocks[r]||2;
+      const info=reasons[r];
+      const arrow=info?(info.delta>0?'▲':'▼'):'·';
+      const arrowColor=info?(info.delta>0?'var(--green2)':'var(--red2)'):'var(--text3)';
+      const parts=info?info.parts:[];
+      return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:.4rem .6rem;margin-bottom:.3rem">
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span style="color:${RC[r]};font-size:1rem">${RI[r]}</span>
+          <span style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--text2);flex:1">${r.toUpperCase()}</span>
+          <span style="font-family:'Cinzel Decorative',serif;font-size:1rem;color:var(--gold2)">${price.toFixed(1)}</span>
+          <span style="font-size:.85rem;color:${arrowColor};font-weight:700">${arrow}</span>
+          ${info?`<span style="font-size:.68rem;color:${arrowColor}">${info.delta>=0?'+':''}${info.delta}</span>`:''}
+        </div>
+        ${parts.length?`<div style="font-size:.65rem;color:var(--text3);margin-top:.2rem;line-height:1.5">${parts.join(' · ')}</div>`:''}
+      </div>`;
+    }).join('')+'</div>';
+}
+
+function updateStockCalc(){
+  const rEl=document.getElementById('stock-res');
+  const qtyEl=document.getElementById('stock-qty');
+  const pidEl=document.getElementById('stock-player');
+  const el=document.getElementById('stock-calc');
+  if(!el)return;
+  const r=rEl?rEl.value:'wool';
+  const qty=parseInt(qtyEl?qtyEl.value:1)||1;
+  const pid=pidEl?pidEl.value:'';
+  const price=G.stocks[r]||2;const totalCost=Math.ceil(price*qty);
+  const owned=pid?(getP(pid)?.stockShares[r]||0):0;
+  el.innerHTML=`Price: ${price.toFixed(1)}/share | ${qty} shares = ${totalCost} resources total | You own: ${owned} shares`;
+}
+
+function renderStockPortfolio(){
+  const pidEl=document.getElementById('stock-player');
+  const c=document.getElementById('stock-portfolio');
+  if(!c||!pidEl)return;
+  const pid=pidEl.value;
+  const p=getP(pid);if(!p)return;
+  const owned=RES.filter(r=>(p.stockShares[r]||0)>0);
+  c.innerHTML=owned.length?owned.map(r=>{const sh=p.stockShares[r];const val=Math.ceil(G.stocks[r]*sh);
+    return`<div style="display:flex;align-items:center;gap:.5rem;padding:.3rem 0;border-bottom:1px solid var(--border)"><div class="res-dot" style="background:${RC[r]}"></div><span style="flex:1;font-size:.82rem">${r}: <strong>${sh}</strong> shares</span><span class="text-green" style="font-size:.78rem">≈${val} val</span></div>`;
+  }).join(''):'<div class="text-xs text-muted">No shares owned.</div>';
+}
+
+function doStockBuy(){
+  const pid=document.getElementById('stock-player').value,r=document.getElementById('stock-res').value;
+  const qty=parseInt(document.getElementById('stock-qty').value)||1;
+  const p=getP(pid);if(!p){notify('Error','No player selected.','warn');return;}
+  if(getLoans(pid).some(l=>l.overdue)){notify('Cannot Buy',`${p.name} has overdue loans.`,'error');return;}
+  const totalCost=Math.ceil(G.stocks[r]*qty);
+  let left=totalCost;for(const x of RES){if(left<=0)break;left-=Math.min(left,p.resources[x]||0);}
+  if(left>0){notify('Insufficient',`${p.name} can't afford ${totalCost} for ${qty} shares.`,'error');return;}
+  left=totalCost;for(const x of RES){if(left<=0)break;const t=Math.min(left,p.resources[x]||0);p.resources[x]-=t;left-=t;}
+  p.stockShares[r]=(p.stockShares[r]||0)+qty;
+  playSound('coin');log(`${p.name} bought ${qty} shares of ${r} @ ${G.stocks[r].toFixed(1)}`);notify('Shares Bought',`${p.name}: +${qty} ${r}`,'success');
+  renderPlayerCards();renderStockPortfolio();updateStockCalc();
+}
+
+function doStockSell(){
+  const pid=document.getElementById('stock-player').value,r=document.getElementById('stock-res').value;
+  const qty=parseInt(document.getElementById('stock-qty').value)||1;
+  const p=getP(pid);if(!p){notify('Error','No player selected.','warn');return;}
+  if((p.stockShares[r]||0)<qty){notify('Insufficient Shares',`${p.name} only has ${p.stockShares[r]||0} shares.`,'error');return;}
+  const receive=Math.floor(G.stocks[r]*qty);
+  p.stockShares[r]-=qty;p.resources[r]=(p.resources[r]||0)+receive;
+  playSound('coin');log(`${p.name} sold ${qty} ${r} shares for ${receive} ${r}`);notify('Shares Sold',`${p.name}: +${receive} ${r}`,'success');
+  renderPlayerCards();renderStockPortfolio();updateStockCalc();
+}
+
+// ═══════════════════════════════════════════════════
+//  VP TRACKER
+// ═══════════════════════════════════════════════════
+function renderVPBreakdown(){
+  const el=document.getElementById('vp-player');if(!el)return;
+  const pid=el.value;const c=document.getElementById('vp-breakdown');if(!pid||!c)return;
+  const p=getP(pid);if(!p)return;
+  recalcVP(p);
+  c.innerHTML=`
+    <div class="vp-row"><span class="vp-src">Settlements (${p.assets.settlements} × 1)</span><span class="vp-val">${p.assets.settlements}</span></div>
+    <div class="vp-row"><span class="vp-src">Cities (${p.assets.cities} × 2)</span><span class="vp-val">${p.assets.cities*2}</span></div>
+    <div class="vp-row"><span class="vp-src">Longest Road (+2)
+      <input type="checkbox" ${p.vpBonus.longestRoad?'checked':''} onchange="toggleVPBonus('${pid}','longestRoad',this.checked)" style="margin-left:.5rem">
+    </span><span class="vp-val">${p.vpBonus.longestRoad?2:0}</span></div>
+    <div class="vp-row"><span class="vp-src">Largest Army (+2)
+      <input type="checkbox" ${p.vpBonus.largestArmy?'checked':''} onchange="toggleVPBonus('${pid}','largestArmy',this.checked)" style="margin-left:.5rem">
+    </span><span class="vp-val">${p.vpBonus.largestArmy?2:0}</span></div>
+    <div class="vp-row"><span class="vp-src">Dev Card VPs
+      <div class="qty" style="display:inline-flex;margin-left:.5rem">
+        <button class="qty-btn" onclick="adjDevVP('${pid}',-1)">−</button>
+        <div class="qty-num" style="font-size:.88rem" id="dev-vp-${pid}">${p.vpBonus.devCardVP||0}</div>
+        <button class="qty-btn" onclick="adjDevVP('${pid}',1)">+</button>
+      </div>
+    </span><span class="vp-val">${p.vpBonus.devCardVP||0}</span></div>
+    <hr class="div">
+    <div class="vp-row" style="font-size:1rem"><span class="vp-src" style="font-family:'Cinzel',serif;font-weight:700">Total VP</span><span class="vp-val" style="font-size:1.2rem">${p.vp}</span></div>
+    ${p.vp>=10&&checkCanWin(pid)?'<div class="success-box" style="text-align:center;font-family:\'Cinzel Decorative\',serif;font-size:1.1rem">🏆 VICTORY CONDITION MET!</div>':''}
+  `;
+}
+
+function toggleVPBonus(pid,bonus,val){
+  const p=getP(pid);if(!p)return;
+  p.vpBonus[bonus]=val;
+  if(val&&(bonus==='longestRoad'||bonus==='largestArmy')){
+    G.players.filter(x=>x.id!==pid).forEach(x=>{x.vpBonus[bonus]=false;recalcVP(x);});
+  }
+  recalcVP(p);renderVPBreakdown();renderPlayerCards();
+}
+
+function adjDevVP(pid,d){
+  const p=getP(pid);if(!p)return;
+  p.vpBonus.devCardVP=Math.max(0,(p.vpBonus.devCardVP||0)+d);
+  recalcVP(p);renderVPBreakdown();renderPlayerCards();
+}
+
+// ═══════════════════════════════════════════════════
+//  EVENTS PHASE
+// ═══════════════════════════════════════════════════
+function renderEventsPhase(){
+  const c=document.getElementById('events-list');if(!c)return;
+  const loansDue=G.loans.filter(l=>l.dueOnTurn<=G.turnNum&&!l.overdue);
+  const overdueLoans=G.loans.filter(l=>l.overdue);
+  let html='';
+  if(!loansDue.length&&!overdueLoans.length&&!G.events.length&&!G.downturn)html='<div class="text-xs text-muted">No events. All clear.</div>';
+  loansDue.forEach(l=>{
+    const p=getP(l.playerId);if(!p)return;
+    const amt=l.amount||0;const res=l.resource||'?';const rate=l.interest||0;
+    const interest=Math.ceil(amt*rate);
+    html+=`<div class="warn-box">⏰ ${p.name}'s ${l.type||'loan'} of ${amt} ${res} is <strong>due this turn</strong>. Repay: ${amt} ${res} + ${interest} any. Use Bank tab to repay.</div>`;
+  });
+  overdueLoans.forEach(l=>{
+    const p=getP(l.playerId);if(!p)return;
+    html+=`<div class="warn-box">⚠ OVERDUE: ${p.name} — ${l.amount||0} ${l.resource||'?'} (${l.type||'loan'}). Cannot buy, trade, or win.</div>`;
+  });
+  G.events.forEach(e=>html+=`<div class="event-card"><div class="event-title">${e.type} (${e.turnsRemaining}T)</div><div class="event-desc">${e.desc}</div></div>`);
+  if(G.downturn)html+=`<div class="event-card"><div class="event-title">${G.downturn.type.toUpperCase()} — ${G.downturn.turnsRemaining}T remaining</div><div class="event-desc">No banking/shipping/rentals/winning.</div></div>`;
+  c.innerHTML=html||'<div class="text-xs text-muted">No events this turn.</div>';
+}
+
+// ═══════════════════════════════════════════════════
+//  SUMMARY
+// ═══════════════════════════════════════════════════
+function renderSummary(){
+  const p=curP();if(!p)return;
+  const loans=getLoans(p.id);const canWin=checkCanWin(p.id);const rank=getRank(p.id);
+  document.getElementById('summary-content').innerHTML=`
+    <table class="sum-table"><thead><tr><th>Resource</th><th>In Hand</th><th>Banked</th></tr></thead>
+    <tbody>${RES.map(r=>`<tr><td><div style="display:flex;align-items:center;gap:.35rem"><div class="res-dot" style="background:${RC[r]}"></div>${r}</div></td><td>${p.resources[r]||0}</td><td>${getDepAmt(p.id,r)||'—'}</td></tr>`).join('')}</tbody></table>
+    <div style="display:flex;gap:.75rem;margin-top:.75rem;flex-wrap:wrap">
+      <div class="info-box" style="flex:1">⚑ <strong>${p.vp} VP</strong><br>🛣️${p.assets.roads} 🏠${p.assets.settlements} 🏙️${p.assets.cities} 🃏${p.assets.devCards}</div>
+      <div class="info-box" style="flex:1">Rank: <strong>${rank.toUpperCase()}</strong>${p.waitTurns>0?`<br>Win wait: ${p.waitTurns} turns`:''}${p.reopenWait>0?`<br>Bank reopen: ${p.reopenWait} turns`:''}</div>
+    </div>
+    ${loans.length?`<div class="warn-box">Active loans: ${loans.length} — due T${loans.map(l=>l.dueOnTurn||'?').join(', ')}</div>`:''}
+    ${!canWin?`<div class="warn-box">⚠ Cannot win this turn (debt/wait/downturn).</div>`:''}
+    ${p.vp>=10&&canWin?`<div style="background:rgba(39,174,96,.1);border:2px solid var(--green2);border-radius:7px;padding:1rem;text-align:center;margin-top:.5rem"><div style="font-family:'Cinzel Decorative',serif;font-size:1.4rem;color:var(--green2)">🏆 VICTORY CONDITION MET!</div><div style="color:var(--text2);margin-top:.25rem">${p.name} has ${p.vp} VP and may claim victory!</div></div>`:''}
+  `;
+}
+
+// ═══════════════════════════════════════════════════
+//  END TURN
+// ═══════════════════════════════════════════════════
+function confirmEndTurn(){
+  closeModal('end-turn-modal');playSound('click');
+  G.turnNum++;
+
+  deliverShipping();
+  processRentals();
+
+  G.loans.forEach(l=>{
+    if(!l.overdue&&l.dueOnTurn<G.turnNum){
+      l.overdue=true;const p=getP(l.playerId);if(!p)return;
+      if(l.type==='standard')p.lateStdCount=(p.lateStdCount||0)+1;else p.lateCCCount=(p.lateCCCount||0)+1;
+      log(`⚠ ${p.name} loan OVERDUE (${l.amount} ${l.resource})`);notify('Loan Overdue!',`${p.name}: ${l.amount} ${l.resource}`,'error');
+    }
+  });
+
+  G.players.forEach(p=>{if(p.waitTurns>0)p.waitTurns--;if(p.reopenWait>0)p.reopenWait--;});
+
+  G.events.forEach(e=>e.turnsRemaining--);G.events=G.events.filter(e=>e.turnsRemaining>0);
+
+  if(G.downturn){
+    G.downturn.turnsRemaining--;
+    if(G.downturn.turnsRemaining<=0){G.downturn=null;notify('Economy Recovers!','Banking/shipping/rentals resume.','success');log('📈 Downturn ended.');}
+  }
+
+  G.creditCards.forEach(cc=>{
+    if(G.turnNum>=cc.mainT){
+      const p=getP(cc.playerId);if(!p)return;let paid=false;
+      for(const r of RES){if((p.resources[r]||0)>=1){p.resources[r]--;paid=true;break;}}
+      cc.mainT+=5;
+      if(!paid)notify('CC Maintenance',`${p.name} couldn't pay maintenance!`,'error');
+      else log(`${p.name} paid CC maintenance`);
+    }
+  });
+
+  G.players.forEach(p=>{
+    if(p.debitCard&&G.turnNum>=p.debitMainT){
+      let paid=false;for(const r of RES){if((p.resources[r]||0)>=1){p.resources[r]--;paid=true;break;}}
+      p.debitMainT+=10;
+      if(!paid)notify('Debit Maintenance',`${p.name} couldn't pay debit fee!`,'error');
+      else log(`${p.name} paid debit card fee`);
+    }
+  });
+
+  fluctuateStocks(G.lastRoll||7);
+  G.turnIdx=(G.turnIdx+1)%G.players.length;
+
+  const rb=document.getElementById('roll-btn');if(rb){rb.disabled=false;rb.textContent='🎲 Roll Dice';}
+  const db=document.getElementById('big-dice');if(db)db.textContent='?';
+  const dd=document.getElementById('dice-detail');if(dd)dd.textContent='Press roll to begin your turn';
+  const dp=document.getElementById('dice-prev');if(dp)dp.textContent='';
+
+  log(`─── T${G.turnNum}: ${curP().name} ───`);
+  renderGame();setStep('roll');populateAllSels();
+}
+
+// ═══════════════════════════════════════════════════
+//  BANKER MODAL
+// ═══════════════════════════════════════════════════
+function refreshBM(){
+  renderBMtable();
+  const opts=G.players.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  ['bm-player','bm-assets-player'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+  renderBMadjust();renderBMevents();
+}
+
+function renderBMtable(){
+  const t=document.getElementById('bm-table');if(!t)return;
+  t.innerHTML=`<thead><tr><th>Player</th>${RES.map(r=>`<th>${RI[r]}</th>`).join('')}<th>Banked</th><th>VP</th><th>Loans</th></tr></thead>
+  <tbody>${G.players.map(p=>`<tr><td><div style="display:flex;align-items:center;gap:.35rem"><div class="res-dot" style="background:${p.color}"></div>${p.name}</div></td>
+  ${RES.map(r=>`<td>${p.resources[r]||0}${getDepAmt(p.id,r)>0?`<small style="color:#80c8ff">+${getDepAmt(p.id,r)}</small>`:''}</td>`).join('')}
+  <td>${getDepTotal(p.id)}</td><td class="tval">${p.vp}</td><td>${getLoans(p.id).length}</td></tr>`).join('')}</tbody>`;
+}
+
+function renderBMadjust(){
+  const el=document.getElementById('bm-player');if(!el)return;
+  const pid=el.value;if(!pid)return;
+  const p=getP(pid);if(!p)return;
+  if(!bmDelta[pid])bmDelta[pid]={wool:0,wood:0,brick:0,ore:0,grain:0};
+  document.getElementById('bm-adjust-area').innerHTML=`
+    ${RES.map(r=>`<div class="rc-row">
+      <div class="rc-bar" style="background:${RC[r]}"></div>
+      <span class="rc-lbl">${r}</span>
+      <div class="qty">
+        <button class="qty-btn" onclick="chBM('${pid}','${r}',-1)">−</button>
+        <div class="delta-n" id="bm-${r}">${bmDelta[pid][r]>=0?'+':''}${bmDelta[pid][r]}</div>
+        <button class="qty-btn" onclick="chBM('${pid}','${r}',1)">+</button>
+      </div>
+      <span class="text-xs text-muted" style="margin-left:.3rem">has:${p.resources[r]||0}</span>
+    </div>`).join('')}
+    <div class="form-row mt-sm">
+      <label class="form-label">VP</label>
+      <div class="qty">
+        <button class="qty-btn" onclick="chBMvp('${pid}',-1)">−</button>
+        <div class="qty-num" id="bm-vp-${pid}">${p.vp}</div>
+        <button class="qty-btn" onclick="chBMvp('${pid}',1)">+</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Debit Card</label>
+      <input type="checkbox" id="bm-debit-${pid}" ${p.debitCard?'checked':''} onchange="bmToggleDebit('${pid}')">
+      <span class="text-xs text-muted" style="margin-left:.3rem">Issue / Revoke</span>
+    </div>`;
+}
+
+function chBM(pid,r,d){
+  if(!bmDelta[pid])bmDelta[pid]={wool:0,wood:0,brick:0,ore:0,grain:0};
+  bmDelta[pid][r]=(bmDelta[pid][r]||0)+d;
+  const el=document.getElementById('bm-'+r);
+  if(el){const v=bmDelta[pid][r];el.textContent=(v>=0?'+':'')+v;el.style.color=v>0?'var(--green2)':v<0?'var(--red2)':'var(--gold2)';}
+}
+function chBMvp(pid,d){const p=getP(pid);if(!p)return;p.vp=Math.max(0,p.vp+d);const el=document.getElementById('bm-vp-'+pid);if(el)el.textContent=p.vp;renderPlayerCards();}
+function bmToggleDebit(pid){const p=getP(pid);if(!p)return;p.debitCard=document.getElementById('bm-debit-'+pid).checked;if(p.debitCard)p.debitMainT=G.turnNum+10;renderPlayerCards();}
+
+function applyBMadjust(){
+  const el=document.getElementById('bm-player');if(!el)return;
+  const pid=el.value;
+  const note=document.getElementById('bm-note').value;
+  const p=getP(pid);if(!p)return;
+  const ch=bmDelta[pid]||{};let changed=[];
+  RES.forEach(r=>{if(ch[r]){p.resources[r]=Math.max(0,(p.resources[r]||0)+ch[r]);if(ch[r]!==0)changed.push(`${ch[r]>0?'+':''}${ch[r]} ${r}`);}});
+  log(`[BANKER] ${p.name}: ${changed.join(', ')||'no res change'}${note?' — '+note:''}`);
+  notify('Banker Override',`${p.name} adjusted`,'warn');
+  bmDelta[pid]={};renderPlayerCards();renderBMtable();document.getElementById('bm-note').value='';
+}
+
+function bmClearDebt(){
+  const el=document.getElementById('bm-player');if(!el)return;
+  const pid=el.value;const p=getP(pid);if(!p)return;
+  G.loans=G.loans.filter(l=>l.playerId!==pid);p.waitTurns=0;
+  log(`[BANKER] ${p.name} debt cleared.`);notify('Debt Cleared',p.name,'success');renderPlayerCards();
+}
+
+function bmResetPlayer(){
+  const el=document.getElementById('bm-player');if(!el)return;
+  const pid=el.value;
+  playerReset(pid);
+}
+
+function renderBMassets(){
+  const el=document.getElementById('bm-assets-player');if(!el)return;
+  const pid=el.value;const c=document.getElementById('bm-assets-display');if(!pid||!c)return;
+  const p=getP(pid);if(!p)return;
+  const loans=getLoans(pid);const deps=G.deposits.filter(d=>d.playerId===pid);
+  c.innerHTML=`
+    <div class="info-box"><strong>Assets:</strong> 🛣️${p.assets.roads||0} roads | 🏠${p.assets.settlements||0} settlements | 🏙️${p.assets.cities||0} cities | 🃏${p.assets.devCards||0} dev cards<br><strong>VP:</strong> ${p.vp||0} | <strong>Wait:</strong> ${p.waitTurns||0}T | <strong>Debit:</strong> ${p.debitCard?'✓':'✗'} | <strong>CC:</strong> ${getCC(pid)?'✓':'✗'}</div>
+    ${loans.length?`<div class="warn-box"><strong>Loans (${loans.length}):</strong><br>${loans.map(l=>`${l.id}: ${l.amount||0} ${l.resource||'?'} (${l.type||'loan'}) due T${l.dueOnTurn||'?'}${l.overdue?' ⚠ OVERDUE':''}`).join('<br>')}</div>`:'<div class="text-xs text-muted mb-sm">No loans.</div>'}
+    ${deps.length?`<div class="info-box"><strong>Deposits (LOCKED):</strong> ${deps.map(d=>`${d.amount||0} ${d.resource||'?'}`).join(', ')}</div>`:''}
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem">
+      <button class="btn btn-red btn-sm" onclick="playerReset('${pid}')">⚠ Reset Player</button>
+      <button class="btn btn-outline btn-sm" onclick="bmClearDebt()">Clear Debt</button>
+    </div>`;
+}
+
+function renderBMevents(){
+  const c=document.getElementById('bm-events-list');if(!c)return;
+  let html='';
+  if(G.downturn)html+=`<div class="rental-item"><div class="rental-info"><div class="rental-title">${G.downturn.type.toUpperCase()}</div><div class="rental-sub">${G.downturn.turnsRemaining}T remaining</div></div><button class="btn btn-red btn-xs" onclick="endDownturn()">End</button></div>`;
+  G.events.forEach(e=>html+=`<div class="rental-item"><div class="rental-info"><div class="rental-title">${e.type}</div><div class="rental-sub">${e.desc} (${e.turnsRemaining}T)</div></div><button class="btn btn-red btn-xs" onclick="removeEv('${e.id}')">✕</button></div>`);
+  c.innerHTML=html||'<div class="text-xs text-muted">No active events.</div>';
+}
+
+function toggleCustomEv(){const sel=document.getElementById('ev-type');document.getElementById('ev-custom-row').style.display=sel&&sel.value==='custom'?'flex':'none';}
+function triggerEvent(){
+  const type=document.getElementById('ev-type').value;const dur=parseInt(document.getElementById('ev-dur').value)||5;
+  const descs={crisis:'Economic Crisis: Rich players may be sabotaged.',boom:'Economic Boom: Production bonuses.',custom:document.getElementById('ev-custom-desc')?.value||'Custom event'};
+  G.events.push({id:'E'+(G.nextId++),type,desc:descs[type],turnsRemaining:dur});
+  log(`[BANKER] Event: ${type} (${dur}T)`);notify('Event!',type.toUpperCase(),'warn');playSound('alert');
+  renderRightPanel();renderBMevents();
+}
+function removeEv(id){G.events=G.events.filter(e=>e.id!==id);renderRightPanel();renderBMevents();}
+function doDownturn(type,dur){G.downturn={type,turnsRemaining:dur};log(`[BANKER] ${type} (${dur}T)`);notify(type.toUpperCase(),`${dur}T`,'error');renderDTbanner();renderRightPanel();renderBMevents();}
+function endDownturn(){G.downturn=null;notify('Downturn Ended','','warn');log('[BANKER] Downturn ended.');renderDTbanner();renderRightPanel();renderBMevents();}
+
+// ═══════════════════════════════════════════════════
+//  PLAYER MODAL
+// ═══════════════════════════════════════════════════
+function openPlayerModal(pid){
+  const p=getP(pid);if(!p)return;
+  document.getElementById('player-modal-title').innerHTML=`
+    <div style="display:flex;align-items:center;gap:.5rem"><div class="res-dot" style="width:13px;height:13px;background:${p.color}"></div>${p.name}</div>
+    <button class="modal-close" onclick="closeModal('player-modal')">✕</button>`;
+  const loans=getLoans(pid);const deps=G.deposits.filter(d=>d.playerId===pid);const canWin=checkCanWin(pid);
+  document.getElementById('player-modal-body').innerHTML=`
+    <table class="sum-table"><thead><tr><th>Resource</th><th>Hand</th><th>Banked</th></tr></thead>
+    <tbody>${RES.map(r=>`<tr><td>${RI[r]||''} ${r}</td><td>${p.resources[r]||0}</td><td>${getDepAmt(pid,r)||'—'}</td></tr>`).join('')}</tbody></table>
+    <hr class="div">
+    <div style="display:flex;gap:.65rem;flex-wrap:wrap">
+      <div class="info-box" style="flex:1">⚑ ${p.vp||0} VP<br>🛣️${p.assets.roads||0} 🏠${p.assets.settlements||0} 🏙️${p.assets.cities||0} 🃏${p.assets.devCards||0}</div>
+      <div class="info-box" style="flex:1">Rank: ${getRank(pid).toUpperCase()}<br>Wait: ${p.waitTurns||0}T | Debit: ${p.debitCard?'✓':'✗'} | CC: ${getCC(pid)?'✓':'✗'}</div>
+    </div>
+    ${deps.length?`<div class="info-box"><strong>Deposits (LOCKED):</strong> ${deps.map(d=>`${d.amount||0} ${d.resource||'?'}`).join(', ')}</div>`:''}
+    ${loans.length?`<div class="warn-box"><strong>Loans:</strong><br>${loans.map(l=>`${l.amount||0} ${l.resource||'?'} (${l.type||'loan'}), due T${l.dueOnTurn||'?'}${l.overdue?' ⚠ OVERDUE':''}`).join('<br>')}</div>`:''}
+    ${!canWin?`<div class="warn-box">⚠ Cannot currently win.</div>`:''}
+    ${p.vp>=10&&canWin?`<div class="success-box" style="text-align:center;font-family:'Cinzel Decorative',serif">🏆 Can claim victory!</div>`:''}`;
+  openModal('player-modal');
+}
+
+// ═══════════════════════════════════════════════════
+//  UTILITY
+// ═══════════════════════════════════════════════════
+function curP(){return G.players[G.turnIdx];}
+function nextP(){return G.players[(G.turnIdx+1)%G.players.length];}
+function getP(id){return G.players.find(p=>p.id===id);}
+function getLoans(pid,type){return G.loans.filter(l=>l.playerId===pid&&(!type||l.type===type));}
+function totalRes(p){return RES.reduce((s,r)=>s+(p.resources[r]||0),0);}
+function getRank(pid){
+  if(!G.players||G.players.length<2)return'neutral';
+  const s=[...G.players].sort((a,b)=>b.vp-a.vp);
+  const i=s.findIndex(p=>p.id===pid);
+  if(i<=1)return'rich';if(i===s.length-1)return'poor';return'neutral';
+}
+function checkCanWin(pid){
+  const p=getP(pid);if(!p)return false;
+  if(G.downturn)return false;
+  if(p.waitTurns>0)return false;
+  if(getLoans(pid).some(l=>l.overdue))return false;
+  return true;
+}
+
+// ── TABS ──
+const ACTION_TABS = ['tab-build','tab-trade','tab-bank','tab-ship','tab-rent','tab-gamble','tab-stocks','tab-vp'];
+
+function switchTab(el,tabId){
+  ACTION_TABS.forEach(id=>{
+    const tc=document.getElementById(id);
+    if(tc)tc.classList.remove('active');
+  });
+  document.querySelectorAll('#action-tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const target=document.getElementById(tabId);
+  if(target)target.classList.add('active');
+  if(tabId==='tab-bank'){checkDTwarns();renderDepStatus();renderCCStatus();renderRepayList();}
+  if(tabId==='tab-ship'){calcShipCost();renderActiveOrders();checkDTwarns();}
+  if(tabId==='tab-rent'){renderRentalsList();renderRentDue();checkDTwarns();}
+  if(tabId==='tab-stocks'){updateStockPrices();renderStockPortfolio();updateStockCalc();}
+  if(tabId==='tab-vp')renderVPBreakdown();
+}
+
+const subTabGroups={
+  'bank-sub':['stab-deposit','stab-loan','stab-cc','stab-repay'],
+  'rent-sub':['rtab-new','rtab-active','rtab-due'],
+  'bm':['bm-overview','bm-adjust','bm-assets','bm-events'],
+  'rl':['rl-overview','rl-winning','rl-bank','rl-loans','rl-cc','rl-stock','rl-ship','rl-rent','rl-events','rl-taxes','rl-disputes'],
+};
+
+function switchSubTab(el,tabId,group){
+  const ids=subTabGroups[group]||[];
+  ids.forEach(id=>{const x=document.getElementById(id);if(x)x.classList.remove('active');});
+  const target=document.getElementById(tabId);if(target)target.classList.add('active');
+  const tabBar=el.closest('.tabs');
+  if(tabBar)tabBar.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===el));
+  if(tabId==='stab-repay')renderRepayList();
+  if(tabId==='stab-deposit')renderDepStatus();
+  if(tabId==='stab-cc')renderCCStatus();
+  if(tabId==='rtab-active')renderRentalsList();
+  if(tabId==='rtab-due')renderRentDue();
+  if(tabId==='bm-overview')renderBMtable();
+  if(tabId==='bm-events')renderBMevents();
+  if(tabId==='bm-adjust')renderBMadjust();
+  if(tabId==='bm-assets')renderBMassets();
+}
+
+function checkDTwarns(){
+  const inDT=!!G.downturn;
+  ['dt-bank-warn','dt-ship-warn','dt-rent-warn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=inDT?'block':'none';});
+}
+
+function populateAllSels(){
+  if(!G.players||!G.players.length)return;
+  const opts=G.players.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  const cur=curP();
+  ['b-player','tr-a','tr-b','loan-player','cc-player','dep-player','repay-player',
+   'ship-player','rent-ll','rent-ten','gamble-player','stock-player',
+   'bm-player','bm-assets-player','vp-player'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.innerHTML=opts;
+  });
+  if(cur){
+    ['b-player','loan-player','cc-player','dep-player','repay-player',
+     'ship-player','gamble-player','stock-player','vp-player'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.value=cur.id;
+    });
+  }
+  updateLoanCalc();updateCCCalc();updateStockCalc();calcShipCost();
+}
+
+// ── NOTIFICATIONS ──
+function notify(title,msg,type='info'){
+  playSound(type==='error'?'error':type==='success'?'success':'click');
+  const stack=document.getElementById('notifs');
+  const el=document.createElement('div');
+  el.className=`notif ${type}`;
+  el.innerHTML=`<div class="notif-title">${title}</div>${msg?`<div>${msg}</div>`:''}`;
+  el.onclick=()=>el.remove();
+  stack.appendChild(el);
+  setTimeout(()=>{if(el.parentNode)el.remove();},5000);
+}
+
+// ── LOG ──
+function log(m){
+  G.gameLog.push({t:G.turnNum,m});
+  const gl=document.getElementById('game-log');
+  if(gl){
+    const el=document.createElement('div');
+    el.innerHTML=`<span style="font-family:'Cinzel',serif;font-size:.6rem;opacity:.7">T${G.turnNum}</span> ${m}`;
+    el.style.cssText='font-size:.75rem;color:var(--text3);padding:.28rem 0;border-bottom:1px solid rgba(255,255,255,.04);line-height:1.35';
+    gl.insertBefore(el,gl.firstChild);
+    while(gl.children.length>50)gl.removeChild(gl.lastChild);
+  }
+  saveG();
+}
+
+// ── KEYBOARD ──
+document.getElementById('new-player-name').addEventListener('keydown',e=>{if(e.key==='Enter')addPlayer();});
+
+// ═══════════════════════════════════════════════════
+//  INIT — Check for saved game, show banner if found
+//  Never auto-jump to game screen; let user choose.
+// ═══════════════════════════════════════════════════
+(function init(){
+  // Force all screens hidden, then show setup
+  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.style.display='none';});
+  const setup=document.getElementById('setup-screen');
+  if(setup){setup.classList.add('active');setup.style.display='block';}
+  renderSetup();
+
+  // If a valid save exists, show the resume/new modal on top
+  if(hasSave()){
+    try{
+      const s=sessionStorage.getItem(SAVE_KEY);
+      const parsed=JSON.parse(s);
+      if(parsed&&Array.isArray(parsed.players)&&parsed.players.length>=2){
+        const valid=parsed.players.every(p=>p&&p.id&&p.name&&p.color&&p.resources&&p.assets&&p.vpBonus&&p.stockShares);
+        if(valid){
+          // Populate save info
+          const info=document.getElementById('landing-save-info');
+          if(info){
+            const names=parsed.players.map(p=>p.name).join(', ');
+            info.innerHTML=`<strong>${parsed.players.length} players:</strong> ${names}<br>Turn ${parsed.turnNum||1}`;
+          }
+          openModal('landing-modal');
+        } else {
+          clearSave();
+        }
+      } else {
+        clearSave();
+      }
+    }catch(e){clearSave();}
+  }
+})();
+</script>
+</body>
+</html>
