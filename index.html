@@ -4,40 +4,48 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>⚜ Settlers: Capitalism ⚜</title>
-<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Freckle+Face&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Freckle+Face&family=Patrick+Hand&family=Indie+Flower&display=swap" rel="stylesheet">
 <style>
-  body {
-    margin:0;
-    font-family: 'Patrick Hand', cursive;
-    background: #f4f1e8;
-    color:#222;
-    line-height:1.5;
+  :root {
+    --primary:#f5c242;
+    --secondary:#bf6b3c;
+    --bg:#f4f1e8;
+    --dark:#1f1f1f;
   }
 
-  /* -------------------- HERO -------------------- */
+  body {
+    margin:0;
+    font-family:'Patrick Hand', cursive;
+    background: var(--bg);
+    color:#222;
+    line-height:1.5;
+    overflow-x:hidden;
+  }
+
+  /* HERO */
   .hero {
-    height: 100vh;
-    background: #1f1f1f;
-    color: #fff;
+    height:100vh;
+    background: var(--dark);
+    color:#fff;
     display:flex;
     flex-direction:column;
     justify-content:center;
     align-items:center;
     text-align:center;
     padding:2rem;
+    position:relative;
   }
   .hero h1 {
-    font-family: 'Freckle Face', cursive;
+    font-family:'Freckle Face', cursive;
     font-size:4rem;
-    line-height:1.1;
-    margin-bottom:1rem;
-    color:#f5c242;
+    color: var(--primary);
     text-shadow:2px 2px #000;
+    margin-bottom:1rem;
   }
   .hero p {
-    font-size:1.2rem;
-    max-width:600px;
-    opacity:0.85;
+    font-size:1.3rem;
+    max-width:700px;
+    opacity:0.9;
   }
   .scroll-hint {
     margin-top:2rem;
@@ -45,23 +53,28 @@
     opacity:0.7;
     animation: float 2s infinite alternate;
   }
-  @keyframes float { 0% { transform:translateY(0); } 100% { transform:translateY(10px); } }
+  @keyframes float { 0% { transform: translateY(0); } 100% { transform: translateY(10px); } }
 
-  /* -------------------- FEATURES -------------------- */
-  section { padding:4rem 2rem; }
-  .features {
-    background:#fff8f0;
+  /* SECTIONS */
+  section {
+    padding:4rem 2rem;
+    opacity:0;
+    transform:translateY(30px);
+    transition: all 0.7s ease-out;
   }
+  section.visible { opacity:1; transform:translateY(0); }
+
+  .features { background:#fff8f0; }
   .features h2 {
-    font-family: 'Freckle Face', cursive;
+    font-family:'Freckle Face', cursive;
     font-size:2.5rem;
     margin-bottom:2rem;
     text-align:center;
-    color:#bf6b3c;
+    color: var(--secondary);
   }
   .features ul {
     list-style:none;
-    max-width:800px;
+    max-width:900px;
     margin:0 auto;
     padding:0;
   }
@@ -69,80 +82,58 @@
     background:#fdf0e2;
     margin:0.7rem 0;
     padding:1rem 1.5rem;
-    border-left:5px solid #f5c242;
+    border-left:5px solid var(--primary);
     font-size:1.15rem;
     display:flex;
     align-items:center;
     transition: transform 0.2s ease;
   }
   .features li:hover { transform:translateX(6px); }
+  .features li span { margin-right:0.75rem; font-size:1.5rem; display:inline-block; animation: bounce 1.2s infinite; }
+  .features li span:nth-child(2) { animation-delay:0.2s; }
+  .features li span:nth-child(3) { animation-delay:0.4s; }
+  @keyframes bounce { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-8px); } }
 
-  .features li span { margin-right:0.75rem; font-size:1.5rem; }
+  /* RULES SECTION */
+  .rules { background:#f7efe7; max-width:900px; margin:0 auto; border-radius:10px; padding:2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);}
+  .rules h3 { font-family:'Indie Flower', cursive; color: var(--secondary); font-size:1.8rem; margin-bottom:1rem; }
+  .rules p, .rules li { margin-bottom:0.8rem; }
 
-  /* -------------------- BUTTON -------------------- */
+  /* LAUNCH BUTTON */
   .launch-btn {
-    display:block;
-    margin:3rem auto 0 auto;
-    padding:1rem 2rem;
-    font-size:1.3rem;
-    background:#1f1f1f;
-    color:#f5c242;
-    border:3px solid #f5c242;
-    border-radius:10px;
-    text-align:center;
+    position:fixed;
+    bottom:2rem;
+    right:2rem;
+    z-index:999;
+    padding:1rem 1.8rem;
+    font-size:1.4rem;
+    background: var(--dark);
+    color: var(--primary);
+    border:3px solid var(--primary);
+    border-radius:50px;
     font-weight:bold;
+    cursor:pointer;
+    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+    display:flex;
+    align-items:center;
+    justify-content:center;
     transition: all 0.3s ease;
   }
   .launch-btn:hover {
-    background:#f5c242;
-    color:#1f1f1f;
-    transform:scale(1.05) rotate(-1deg);
+    background: var(--primary);
+    color: var(--dark);
+    transform:scale(1.1) rotate(-1deg);
   }
 
-  /* -------------------- PREVIEW CARDS -------------------- */
-  .preview-container {
-    display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(220px,1fr));
-    gap:1rem;
-    margin-top:2rem;
-  }
-  .preview-card {
-    background:#ffeedc;
-    padding:1rem;
-    border-radius:8px;
-    text-align:center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  }
-  .preview-card img {
-    width:100%;
-    height:120px;
-    background:#ddd;
-    margin-bottom:0.5rem;
-    border-radius:5px;
-  }
-
-  /* -------------------- TABLE -------------------- */
-  table {
-    width:100%;
-    border-collapse:collapse;
-    margin-top:2rem;
-    background:#fff8f0;
-  }
-  th, td {
-    border:1px solid #f5c242;
-    padding:0.5rem 1rem;
-    text-align:center;
-  }
-  th { background:#f5c242; color:#1f1f1f; }
-  tr:nth-child(even){ background:#fff1e0; }
-
-  /* -------------------- FOOTER -------------------- */
+  /* FOOTER */
   footer {
     text-align:center;
     padding:2rem;
     font-size:0.9rem;
     color:#555;
+    background:#fff8f0;
   }
+
 </style>
 </head>
 <body>
@@ -150,76 +141,57 @@
 <!-- HERO -->
 <section class="hero">
   <h1>⚜ Settlers: Capitalism ⚜</h1>
-  <p>🛠 Play a high-stakes board game digitally! Manage resources, trade, gamble, and build your empire instantly — no login required.</p>
-  <div class="scroll-hint">▼ Scroll Down ▼</div>
+  <p>🛠 Trade, build, gamble, and manage resources like a true capitalist! Control your hand, savings, stocks, and rentals in this interactive digital board game experience.</p>
+  <div class="scroll-hint">▼ Scroll for Features & Rules ▼</div>
 </section>
 
 <!-- FEATURES -->
 <section class="features">
   <h2>🌟 Features</h2>
   <ul>
-    <li><span>🐑</span> Wool, Wood, Brick, Ore, Grain resource management</li>
-    <li><span>🏠</span> Build settlements 🏠 and cities 🏙️</li>
-    <li><span>⚒</span> Actions: Trade, Bank, Shipping, Gamble, Stocks</li>
-    <li><span>⚠️</span> Dynamic events: Bank Collapse & Rentals</li>
-    <li><span>💰</span> Rankings & Taxes based on assets</li>
-    <li><span>📜</span> Interactive logs & turn summaries</li>
+    <li><span>🐑</span> Wool, Wood, Brick, Ore, Grain management</li>
+    <li><span>🏠</span> Build Settlements & Cities 🏙️</li>
+    <li><span>⚒</span> Trade, Bank, Shipping, Gamble, Stocks</li>
+    <li><span>⚠️</span> Dynamic events: Bank Collapse, Recessions, Booms</li>
+    <li><span>💰</span> Asset tracking & ranking for taxation</li>
+    <li><span>📜</span> Interactive logs, turn summaries & decision support</li>
   </ul>
-
-  <a class="launch-btn" href="https://dqtools26.github.io/dqcatan/settlersb2.html" target="_blank">🎮 LAUNCH</a>
-
-  <!-- FAKE PREVIEWS -->
-  <div class="preview-container">
-    <div class="preview-card">
-      <img alt="Resource Market Preview">
-      <strong>Resource Market</strong>
-      <p>🐑 2.1 ▲ 🪵 2.7 ▲ 🧱 2.4 ▲ ⛏️ 2.4 ▲ 🌾 2.7 ▲</p>
-    </div>
-    <div class="preview-card">
-      <img alt="Player Assets Preview">
-      <strong>Player Assets</strong>
-      <p>🏠 2 🏙️ 0 🛣️ 2 🃏 0</p>
-    </div>
-    <div class="preview-card">
-      <img alt="Game Log Preview">
-      <strong>Game Log</strong>
-      <p>T1 🎲 Example I rolled 3<br>T1 ⚑ Settlers: Capitalism started!</p>
-    </div>
-  </div>
-
-  <!-- FAKE TABLE -->
-  <table>
-    <thead>
-      <tr>
-        <th>Player</th>
-        <th>Hand</th>
-        <th>Savings</th>
-        <th>Assets</th>
-        <th>VP</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Example I 🏦</td>
-        <td>0</td>
-        <td>0</td>
-        <td>2</td>
-        <td>2</td>
-      </tr>
-      <tr>
-        <td>Example II</td>
-        <td>0</td>
-        <td>0</td>
-        <td>2</td>
-        <td>2</td>
-      </tr>
-    </tbody>
-  </table>
 </section>
 
+<!-- RULES -->
+<section class="rules">
+  <h3>🎲 Quick Rules Overview</h3>
+  <ul>
+    <li><strong>Goal:</strong> Reach 10 Victory Points with no unpaid debts and no active economic restrictions.</li>
+    <li><strong>Turn Steps:</strong> Roll → Distribute Resources → Optional Actions → Resolve Events → Turn Summary</li>
+    <li><strong>Optional Actions:</strong> Build, Trade, Bank, Shipping, Rentals, Gamble, Stocks</li>
+    <li><strong>Banking:</strong> Savings are safe, Hand resources are risky. Credit and loans enable strategic plays.</li>
+    <li><strong>Events:</strong> Bank Collapse, Recession, Depression, Boom, Crisis affect player resources and stock prices.</li>
+    <li><strong>Stocks:</strong> Buy low/high production dice boosts, sell high for profit.</li>
+    <li><strong>Rank & Taxes:</strong> Asset-based rank determines taxation and event penalties.</li>
+    <li><strong>Hand vs Assets:</strong> Hand is spendable, Assets determine wealth rank and VP.</li>
+  </ul>
+  <p>⚜ Digital Banker Assistant recommended for full experience. Track your empire, loans, and rankings automatically.</p>
+</section>
+
+<!-- FOOTER -->
 <footer>
-  © 2026 Settlers: Capitalism
+  © 2026 Settlers: Capitalism • Fun, playful, interactive
 </footer>
+
+<!-- LAUNCH BUTTON -->
+<a class="launch-btn" href="settlersb2.html" target="_blank">🎮 LAUNCH</a>
+
+<script>
+  // Scroll-based fade-in
+  const sections = document.querySelectorAll('section');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){ entry.target.classList.add('visible'); }
+    });
+  }, {threshold:0.2});
+  sections.forEach(sec => observer.observe(sec));
+</script>
 
 </body>
 </html>
