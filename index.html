@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚜ Settlers: Capitalism ⚜</title>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Freckle+Face&display=swap" rel="stylesheet">
+<style>
+  body {
+    margin:0;
+    font-family: 'Patrick Hand', cursive;
+    background: #f4f1e8;
+    color:#222;
+    line-height:1.5;
+  }
+
+  /* -------------------- HERO -------------------- */
+  .hero {
+    height: 100vh;
+    background: #1f1f1f;
+    color: #fff;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding:2rem;
+  }
+  .hero h1 {
+    font-family: 'Freckle Face', cursive;
+    font-size:4rem;
+    line-height:1.1;
+    margin-bottom:1rem;
+    color:#f5c242;
+    text-shadow:2px 2px #000;
+  }
+  .hero p {
+    font-size:1.2rem;
+    max-width:600px;
+    opacity:0.85;
+  }
+  .scroll-hint {
+    margin-top:2rem;
+    font-size:1.2rem;
+    opacity:0.7;
+    animation: float 2s infinite alternate;
+  }
+  @keyframes float { 0% { transform:translateY(0); } 100% { transform:translateY(10px); } }
+
+  /* -------------------- FEATURES -------------------- */
+  section { padding:4rem 2rem; }
+  .features {
+    background:#fff8f0;
+  }
+  .features h2 {
+    font-family: 'Freckle Face', cursive;
+    font-size:2.5rem;
+    margin-bottom:2rem;
+    text-align:center;
+    color:#bf6b3c;
+  }
+  .features ul {
+    list-style:none;
+    max-width:800px;
+    margin:0 auto;
+    padding:0;
+  }
+  .features li {
+    background:#fdf0e2;
+    margin:0.7rem 0;
+    padding:1rem 1.5rem;
+    border-left:5px solid #f5c242;
+    font-size:1.15rem;
+    display:flex;
+    align-items:center;
+    transition: transform 0.2s ease;
+  }
+  .features li:hover { transform:translateX(6px); }
+
+  .features li span { margin-right:0.75rem; font-size:1.5rem; }
+
+  /* -------------------- BUTTON -------------------- */
+  .launch-btn {
+    display:block;
+    margin:3rem auto 0 auto;
+    padding:1rem 2rem;
+    font-size:1.3rem;
+    background:#1f1f1f;
+    color:#f5c242;
+    border:3px solid #f5c242;
+    border-radius:10px;
+    text-align:center;
+    font-weight:bold;
+    transition: all 0.3s ease;
+  }
+  .launch-btn:hover {
+    background:#f5c242;
+    color:#1f1f1f;
+    transform:scale(1.05) rotate(-1deg);
+  }
+
+  /* -------------------- PREVIEW CARDS -------------------- */
+  .preview-container {
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px,1fr));
+    gap:1rem;
+    margin-top:2rem;
+  }
+  .preview-card {
+    background:#ffeedc;
+    padding:1rem;
+    border-radius:8px;
+    text-align:center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+  .preview-card img {
+    width:100%;
+    height:120px;
+    background:#ddd;
+    margin-bottom:0.5rem;
+    border-radius:5px;
+  }
+
+  /* -------------------- TABLE -------------------- */
+  table {
+    width:100%;
+    border-collapse:collapse;
+    margin-top:2rem;
+    background:#fff8f0;
+  }
+  th, td {
+    border:1px solid #f5c242;
+    padding:0.5rem 1rem;
+    text-align:center;
+  }
+  th { background:#f5c242; color:#1f1f1f; }
+  tr:nth-child(even){ background:#fff1e0; }
+
+  /* -------------------- FOOTER -------------------- */
+  footer {
+    text-align:center;
+    padding:2rem;
+    font-size:0.9rem;
+    color:#555;
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <h1>⚜ Settlers: Capitalism ⚜</h1>
+  <p>🛠 Play a high-stakes board game digitally! Manage resources, trade, gamble, and build your empire instantly — no login required.</p>
+  <div class="scroll-hint">▼ Scroll Down ▼</div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <h2>🌟 Features</h2>
+  <ul>
+    <li><span>🐑</span> Wool, Wood, Brick, Ore, Grain resource management</li>
+    <li><span>🏠</span> Build settlements 🏠 and cities 🏙️</li>
+    <li><span>⚒</span> Actions: Trade, Bank, Shipping, Gamble, Stocks</li>
+    <li><span>⚠️</span> Dynamic events: Bank Collapse & Rentals</li>
+    <li><span>💰</span> Rankings & Taxes based on assets</li>
+    <li><span>📜</span> Interactive logs & turn summaries</li>
+  </ul>
+
+  <a class="launch-btn" href="https://dqtools26.github.io/dqcatan/settlersb2.html" target="_blank">🎮 LAUNCH</a>
+
+  <!-- FAKE PREVIEWS -->
+  <div class="preview-container">
+    <div class="preview-card">
+      <img alt="Resource Market Preview">
+      <strong>Resource Market</strong>
+      <p>🐑 2.1 ▲ 🪵 2.7 ▲ 🧱 2.4 ▲ ⛏️ 2.4 ▲ 🌾 2.7 ▲</p>
+    </div>
+    <div class="preview-card">
+      <img alt="Player Assets Preview">
+      <strong>Player Assets</strong>
+      <p>🏠 2 🏙️ 0 🛣️ 2 🃏 0</p>
+    </div>
+    <div class="preview-card">
+      <img alt="Game Log Preview">
+      <strong>Game Log</strong>
+      <p>T1 🎲 Example I rolled 3<br>T1 ⚑ Settlers: Capitalism started!</p>
+    </div>
+  </div>
+
+  <!-- FAKE TABLE -->
+  <table>
+    <thead>
+      <tr>
+        <th>Player</th>
+        <th>Hand</th>
+        <th>Savings</th>
+        <th>Assets</th>
+        <th>VP</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Example I 🏦</td>
+        <td>0</td>
+        <td>0</td>
+        <td>2</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td>Example II</td>
+        <td>0</td>
+        <td>0</td>
+        <td>2</td>
+        <td>2</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  © 2026 Settlers: Capitalism
+</footer>
+
+</body>
+</html>
