@@ -1,0 +1,2378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settlers: Capitalism — Digital Rulebook v5.1</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   ROOT & RESET
+═══════════════════════════════════════════════ */
+:root {
+  --ink: #1a1710;
+  --ink2: #252218;
+  --ink3: #2f2c1e;
+  --ink4: #3a3626;
+  --parchment: #f2ead6;
+  --parchment2: #e8dfc0;
+  --parchment3: #d4c99a;
+  --parchment4: #b0a07a;
+  --gold: #c8960a;
+  --gold-bright: #e8b020;
+  --gold-dim: #7a5c0a;
+  --gold-pale: #f5e4b0;
+  --red: #8b1a1a;
+  --red-bright: #c0392b;
+  --green: #1a5c2a;
+  --green-bright: #27ae60;
+  --blue: #1a3a6b;
+  --sidebar-w: 280px;
+  --content-max: 820px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--ink);
+  color: var(--ink);
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 17px;
+  line-height: 1.75;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--ink2); }
+::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 4px; }
+
+/* ═══════════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════════ */
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ═══════════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════════ */
+#sidebar {
+  width: var(--sidebar-w);
+  min-height: 100vh;
+  background: var(--ink2);
+  border-right: 1px solid rgba(200,150,10,0.2);
+  position: fixed;
+  top: 0; left: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 200;
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid rgba(200,150,10,0.15);
+  background: var(--ink);
+}
+
+.sidebar-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--gold-dim);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.sidebar-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--gold);
+  line-height: 1.1;
+}
+
+.sidebar-edition {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--gold-dim);
+  margin-top: 4px;
+  display: block;
+}
+
+.sidebar-progress {
+  padding: 12px 24px;
+  border-bottom: 1px solid rgba(200,150,10,0.1);
+}
+
+.progress-bar-wrap {
+  background: var(--ink3);
+  height: 3px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  background: var(--gold);
+  height: 100%;
+  width: 0%;
+  transition: width 0.4s ease;
+  border-radius: 2px;
+}
+.progress-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--gold-dim);
+  margin-top: 6px;
+  display: flex; justify-content: space-between;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 0;
+}
+
+.nav-group-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: rgba(200,150,10,0.4);
+  padding: 16px 24px 6px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 24px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+  text-decoration: none;
+  color: rgba(242,234,214,0.55);
+  font-family: 'Crimson Pro', serif;
+  font-size: 14px;
+  line-height: 1.3;
+}
+.nav-item:hover {
+  background: rgba(200,150,10,0.06);
+  color: var(--parchment2);
+  border-left-color: var(--gold-dim);
+}
+.nav-item.active {
+  background: rgba(200,150,10,0.12);
+  color: var(--gold);
+  border-left-color: var(--gold);
+}
+.nav-item.active .nav-num { color: var(--gold); }
+
+.nav-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--gold-dim);
+  min-width: 20px;
+}
+
+.nav-check {
+  margin-left: auto;
+  color: var(--green-bright);
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.nav-item.read .nav-check { opacity: 1; }
+
+.sidebar-footer {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(200,150,10,0.1);
+  display: flex; gap: 8px; flex-direction: column;
+}
+.sidebar-link {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--gold-dim);
+  text-decoration: none;
+  padding: 8px 12px;
+  border: 1px solid rgba(200,150,10,0.2);
+  text-align: center;
+  transition: all 0.2s;
+}
+.sidebar-link:hover { border-color: var(--gold); color: var(--gold); }
+.sidebar-link.primary { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+.sidebar-link.primary:hover { background: var(--gold-bright); }
+
+/* ═══════════════════════════════════════════════
+   MAIN CONTENT
+═══════════════════════════════════════════════ */
+#main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  background: var(--parchment);
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Paper texture */
+#main::before {
+  content: '';
+  position: fixed;
+  top: 0; left: var(--sidebar-w); right: 0; bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(242,234,214,0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(200,150,10,0.25);
+  padding: 0 48px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topbar-breadcrumb {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--gold-dim);
+  display: flex; align-items: center; gap: 8px;
+}
+.topbar-breadcrumb .sep { color: rgba(200,150,10,0.3); }
+.topbar-breadcrumb .current { color: var(--gold); }
+
+.topbar-actions {
+  display: flex; gap: 12px; align-items: center;
+}
+
+.topbar-btn {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--gold-dim);
+  background: none;
+  border: 1px solid rgba(200,150,10,0.25);
+  padding: 5px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.topbar-btn:hover { border-color: var(--gold); color: var(--gold); }
+.topbar-btn.highlight { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+.topbar-btn.highlight:hover { background: var(--gold-bright); }
+
+/* ── CHAPTERS ── */
+.chapter {
+  display: none;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 60px 48px 100px;
+  position: relative;
+  z-index: 2;
+  animation: pageIn 0.35s ease;
+}
+.chapter.active { display: block; }
+
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── CHAPTER HEADER ── */
+.ch-eyebrow {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  letter-spacing: 5px;
+  color: var(--gold-dim);
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 12px;
+}
+.ch-eyebrow::after { content: ''; flex: 1; max-width: 60px; height: 1px; background: var(--parchment3); }
+
+.ch-number {
+  font-family: 'Playfair Display', serif;
+  font-size: 96px;
+  font-weight: 900;
+  color: rgba(200,150,10,0.1);
+  line-height: 1;
+  position: absolute;
+  top: 48px; right: 48px;
+  user-select: none;
+  pointer-events: none;
+}
+
+h1.ch-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 900;
+  color: var(--ink);
+  line-height: 1.05;
+  margin-bottom: 12px;
+}
+h1.ch-title em { color: var(--gold); font-style: italic; }
+
+.ch-subtitle {
+  font-size: 18px;
+  color: var(--parchment4);
+  font-style: italic;
+  margin-bottom: 40px;
+  max-width: 540px;
+}
+
+.ch-divider {
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+  margin: 36px 0;
+  opacity: 0.4;
+}
+
+/* ── TYPOGRAPHY ── */
+h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 44px 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+h2::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 24px;
+  background: var(--gold);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 28px 0 10px;
+  font-style: italic;
+}
+
+p {
+  margin-bottom: 16px;
+  color: var(--ink3);
+}
+
+strong { color: var(--ink); font-weight: 600; }
+
+ul, ol {
+  padding-left: 24px;
+  margin-bottom: 16px;
+  color: var(--ink3);
+}
+li { margin-bottom: 6px; }
+li strong { color: var(--ink); }
+
+/* ── CALLOUT BOXES ── */
+.callout {
+  margin: 24px 0;
+  padding: 20px 24px;
+  border-left: 4px solid;
+  position: relative;
+  overflow: hidden;
+}
+.callout::before {
+  content: attr(data-icon);
+  position: absolute;
+  right: 20px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 48px;
+  opacity: 0.08;
+  line-height: 1;
+}
+
+.callout.tip { border-color: var(--gold); background: rgba(200,150,10,0.06); }
+.callout.warning { border-color: var(--red-bright); background: rgba(192,57,43,0.06); }
+.callout.danger { border-color: #8b0000; background: rgba(139,0,0,0.08); }
+.callout.success { border-color: var(--green-bright); background: rgba(39,174,96,0.06); }
+.callout.info { border-color: var(--blue); background: rgba(26,58,107,0.05); }
+.callout.rule { border-color: var(--ink); background: rgba(26,23,16,0.04); }
+
+.callout-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 10px;
+  letter-spacing: 3px;
+  margin-bottom: 6px;
+}
+.callout.tip .callout-label { color: var(--gold); }
+.callout.warning .callout-label { color: var(--red-bright); }
+.callout.danger .callout-label { color: #8b0000; }
+.callout.success .callout-label { color: var(--green-bright); }
+.callout.info .callout-label { color: var(--blue); }
+.callout.rule .callout-label { color: var(--ink); }
+
+.callout p { margin: 0; font-size: 15px; color: var(--ink3); }
+.callout p strong { color: var(--ink); }
+
+/* ── TABLES ── */
+.table-wrap {
+  overflow-x: auto;
+  margin: 20px 0;
+  border: 1px solid rgba(200,150,10,0.2);
+  border-radius: 2px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+thead { background: var(--ink); }
+thead th {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--gold);
+  padding: 12px 16px;
+  text-align: left;
+  white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid rgba(200,150,10,0.1); }
+tbody tr:last-child { border: none; }
+tbody tr:hover { background: rgba(200,150,10,0.04); }
+td {
+  padding: 11px 16px;
+  color: var(--ink3);
+  vertical-align: top;
+}
+td strong { color: var(--ink); }
+td.gold { color: var(--gold); font-weight: 600; }
+td.red { color: var(--red-bright); font-weight: 600; }
+td.green { color: var(--green-bright); font-weight: 600; }
+
+/* ── RESOURCE CHIPS ── */
+.resource-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.resource-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--ink);
+  border: 1px solid rgba(200,150,10,0.3);
+  padding: 14px 18px;
+  min-width: 90px;
+  text-align: center;
+  cursor: default;
+  transition: all 0.2s;
+  position: relative;
+}
+.resource-chip:hover {
+  border-color: var(--gold);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+.resource-chip:hover .rc-tooltip { opacity: 1; pointer-events: auto; }
+.rc-icon { font-size: 26px; margin-bottom: 4px; }
+.rc-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--gold);
+}
+.rc-source {
+  font-size: 11px;
+  color: rgba(242,234,214,0.4);
+  margin-top: 2px;
+}
+
+.rc-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  border: 1px solid var(--gold-dim);
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--parchment2);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 50;
+  font-family: 'Crimson Pro', serif;
+}
+.rc-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--gold-dim);
+}
+
+/* ── BUILD COST CARDS ── */
+.build-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.build-card {
+  background: var(--ink);
+  border: 1px solid rgba(200,150,10,0.2);
+  padding: 20px 16px;
+  position: relative;
+  transition: all 0.2s;
+}
+.build-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+
+.bc-icon { font-size: 32px; margin-bottom: 8px; }
+.bc-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.bc-cost {
+  font-size: 13px;
+  color: var(--parchment3);
+  line-height: 1.6;
+}
+.bc-note {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--gold-dim);
+  font-style: italic;
+}
+
+/* ── TIMELINE / PHASES ── */
+.timeline {
+  margin: 24px 0;
+  position: relative;
+  padding-left: 32px;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 10px; top: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--gold), transparent);
+}
+
+.tl-item {
+  position: relative;
+  margin-bottom: 28px;
+}
+.tl-item::before {
+  content: '';
+  position: absolute;
+  left: -26px;
+  top: 6px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 0 3px var(--parchment), 0 0 0 4px var(--gold-dim);
+}
+
+.tl-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.tl-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.tl-body { font-size: 15px; color: var(--ink3); }
+
+/* ── EVENT CARDS ── */
+.event-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+  margin: 24px 0;
+}
+
+.event-card {
+  border: 2px solid;
+  padding: 24px 20px;
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+  transition: transform 0.2s;
+}
+.event-card:hover { transform: scale(1.02); }
+
+.event-card::before {
+  content: attr(data-bg);
+  position: absolute;
+  font-size: 72px;
+  right: -10px; bottom: -10px;
+  opacity: 0.07;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.event-card.recession { border-color: rgba(192,57,43,0.5); background: rgba(192,57,43,0.04); }
+.event-card.depression { border-color: rgba(139,0,0,0.7); background: rgba(139,0,0,0.06); }
+.event-card.boom { border-color: rgba(39,174,96,0.5); background: rgba(39,174,96,0.04); }
+.event-card.crisis { border-color: rgba(200,150,10,0.5); background: rgba(200,150,10,0.04); }
+.event-card.collapse { border-color: rgba(26,23,16,0.6); background: rgba(26,23,16,0.06); }
+
+.ec-tag {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 9px;
+  letter-spacing: 3px;
+  padding: 3px 8px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+.recession .ec-tag { background: rgba(192,57,43,0.15); color: var(--red-bright); }
+.depression .ec-tag { background: rgba(139,0,0,0.2); color: #e74c3c; }
+.boom .ec-tag { background: rgba(39,174,96,0.15); color: var(--green-bright); }
+.crisis .ec-tag { background: rgba(200,150,10,0.15); color: var(--gold); }
+.collapse .ec-tag { background: rgba(26,23,16,0.15); color: var(--ink); }
+
+.ec-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 900;
+  margin-bottom: 4px;
+  font-style: italic;
+}
+.recession .ec-name { color: var(--red-bright); }
+.depression .ec-name { color: #8b0000; }
+.boom .ec-name { color: var(--green-bright); }
+.crisis .ec-name { color: var(--gold); }
+.collapse .ec-name { color: var(--ink); }
+
+.ec-duration {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--parchment4);
+  margin-bottom: 12px;
+}
+
+.ec-effects { font-size: 13px; color: var(--ink3); line-height: 1.6; }
+
+/* ── DEPRESSION PHASES ── */
+.dep-phases {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin: 20px 0;
+  border: 1px solid rgba(139,0,0,0.3);
+}
+.dep-phase {
+  padding: 16px;
+  background: rgba(139,0,0,0.04);
+  text-align: center;
+}
+.dep-phase:nth-child(2) { background: rgba(139,0,0,0.07); }
+.dep-phase:nth-child(3) { background: rgba(139,0,0,0.03); }
+.dp-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: rgba(139,0,0,0.6);
+  margin-bottom: 4px;
+}
+.dp-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #8b0000;
+  margin-bottom: 6px;
+  font-style: italic;
+}
+.dp-turns {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--parchment4);
+  margin-bottom: 8px;
+}
+.dp-effects { font-size: 12px; color: var(--ink3); line-height: 1.5; }
+
+/* ── BANK COLLAPSE RITUAL ── */
+.ritual-box {
+  background: var(--ink);
+  border: 2px solid rgba(255,255,255,0.1);
+  padding: 40px;
+  text-align: center;
+  margin: 28px 0;
+  position: relative;
+  overflow: hidden;
+}
+.ritual-box::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(45deg, rgba(255,0,0,0.015) 0, rgba(255,0,0,0.015) 10px, transparent 10px, transparent 20px);
+}
+.ritual-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  letter-spacing: 8px;
+  color: white;
+  text-shadow: 0 0 40px rgba(255,80,80,0.5);
+  margin-bottom: 12px;
+  animation: flicker 4s infinite;
+}
+@keyframes flicker {
+  0%,100%{opacity:1}92%{opacity:1}94%{opacity:0.4}96%{opacity:1}98%{opacity:0.3}99%{opacity:1}
+}
+.ritual-sub { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 28px; font-style: italic; }
+.ritual-steps {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;
+}
+.ritual-step {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 10px 16px;
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 2px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.8);
+}
+
+/* ── STOCK TABLE ── */
+.stock-table-wrap {
+  background: var(--ink);
+  border: 1px solid rgba(200,150,10,0.2);
+  padding: 0;
+  overflow: hidden;
+  margin: 20px 0;
+}
+.stock-header {
+  background: var(--ink2);
+  padding: 10px 20px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--gold-dim);
+  display: flex; justify-content: space-between;
+  border-bottom: 1px solid rgba(200,150,10,0.1);
+}
+.stock-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 2fr;
+  gap: 0;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(200,150,10,0.08);
+  align-items: center;
+  transition: background 0.15s;
+}
+.stock-row:hover { background: rgba(200,150,10,0.04); }
+.stock-row:last-child { border: none; }
+.sr-name { font-family: 'Crimson Pro', serif; font-size: 15px; color: var(--parchment2); }
+.sr-boost { color: var(--green-bright); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+.sr-hurt { color: var(--red-bright); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+.sr-notes { font-size: 12px; color: rgba(242,234,214,0.4); font-style: italic; }
+
+/* ── LOAN CALCULATOR ── */
+.calc-box {
+  background: var(--ink2);
+  border: 1px solid rgba(200,150,10,0.2);
+  padding: 28px;
+  margin: 24px 0;
+}
+.calc-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 3px;
+  color: var(--gold);
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 8px;
+}
+.calc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.calc-field label {
+  display: block;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--gold-dim);
+  margin-bottom: 6px;
+}
+.calc-field input, .calc-field select {
+  width: 100%;
+  background: var(--ink3);
+  border: 1px solid rgba(200,150,10,0.25);
+  color: var(--parchment2);
+  padding: 10px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+}
+.calc-field input:focus, .calc-field select:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+.calc-result {
+  padding: 16px 20px;
+  border: 1px solid;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.calc-result.ok { border-color: var(--green-bright); background: rgba(39,174,96,0.06); }
+.calc-result.warn { border-color: var(--gold); background: rgba(200,150,10,0.06); }
+.calc-result.danger { border-color: var(--red-bright); background: rgba(192,57,43,0.06); }
+.cr-amount {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px;
+  font-weight: 600;
+}
+.calc-result.ok .cr-amount { color: var(--green-bright); }
+.calc-result.warn .cr-amount { color: var(--gold); }
+.calc-result.danger .cr-amount { color: var(--red-bright); }
+.cr-label { font-family: 'Bebas Neue', sans-serif; font-size: 10px; letter-spacing: 2px; color: rgba(242,234,214,0.4); }
+.cr-note { font-size: 13px; color: rgba(242,234,214,0.5); font-style: italic; text-align: right; max-width: 280px; }
+
+/* ── SHIPPING CALCULATOR ── */
+.ship-table {
+  margin: 16px 0;
+}
+
+/* ── TAX CALCULATOR ── */
+.tax-demo {
+  background: var(--ink2);
+  border: 1px solid rgba(200,150,10,0.2);
+  padding: 24px;
+  margin: 24px 0;
+}
+
+/* ── RANK BADGES ── */
+.rank-row {
+  display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0;
+}
+.rank-badge {
+  padding: 12px 24px;
+  border: 1px solid;
+  text-align: center;
+  min-width: 120px;
+}
+.rank-badge.rich { border-color: var(--gold); background: rgba(200,150,10,0.08); }
+.rank-badge.middle { border-color: rgba(200,150,10,0.3); background: rgba(200,150,10,0.03); }
+.rank-badge.poor { border-color: rgba(26,23,16,0.3); background: rgba(26,23,16,0.03); }
+.rb-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  letter-spacing: 3px;
+  margin-bottom: 4px;
+}
+.rich .rb-title { color: var(--gold); }
+.middle .rb-title { color: var(--parchment4); }
+.poor .rb-title { color: var(--parchment4); }
+.rb-desc { font-size: 13px; color: var(--ink3); }
+
+/* ── INLINE TAGS ── */
+.tag-red { display: inline; background: rgba(192,57,43,0.1); border: 1px solid rgba(192,57,43,0.3); color: var(--red-bright); padding: 1px 8px; font-size: 13px; white-space: nowrap; }
+.tag-green { display: inline; background: rgba(39,174,96,0.1); border: 1px solid rgba(39,174,96,0.3); color: var(--green-bright); padding: 1px 8px; font-size: 13px; white-space: nowrap; }
+.tag-gold { display: inline; background: rgba(200,150,10,0.1); border: 1px solid rgba(200,150,10,0.3); color: var(--gold); padding: 1px 8px; font-size: 13px; white-space: nowrap; }
+.tag-ink { display: inline; background: rgba(26,23,16,0.08); border: 1px solid rgba(26,23,16,0.2); color: var(--ink); padding: 1px 8px; font-size: 13px; white-space: nowrap; }
+
+/* ── STEP BOXES ── */
+.steps {
+  counter-reset: step;
+  margin: 20px 0;
+}
+.step-item {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  align-items: flex-start;
+}
+.step-num {
+  counter-increment: step;
+  background: var(--gold);
+  color: var(--ink);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 1px;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.step-body {}
+.step-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; margin-bottom: 4px; color: var(--ink); }
+.step-desc { font-size: 15px; color: var(--ink3); }
+
+/* ── CHAPTER NAV BUTTONS ── */
+.ch-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 60px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(200,150,10,0.2);
+}
+.ch-nav-btn {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 12px;
+  letter-spacing: 3px;
+  background: none;
+  border: 1px solid rgba(200,150,10,0.3);
+  color: var(--gold-dim);
+  padding: 10px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.ch-nav-btn:hover { border-color: var(--gold); color: var(--gold); }
+.ch-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ── MOBILE TOGGLE ── */
+.mobile-toggle {
+  display: none;
+  position: fixed;
+  top: 12px; left: 12px;
+  z-index: 300;
+  background: var(--ink);
+  border: 1px solid rgba(200,150,10,0.3);
+  color: var(--gold);
+  padding: 8px 12px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+@media (max-width: 800px) {
+  .mobile-toggle { display: block; }
+  #sidebar { transform: translateX(-100%); }
+  #sidebar.open { transform: translateX(0); }
+  #main { margin-left: 0; }
+  #main::before { left: 0; }
+  .chapter { padding: 60px 24px 80px; }
+  .topbar { padding: 0 24px; }
+  .ch-number { display: none; }
+  .dep-phases { grid-template-columns: 1fr; }
+  .calc-grid { grid-template-columns: 1fr; }
+  .build-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── COVER PAGE ── */
+#ch-cover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 52px);
+  text-align: center;
+  padding: 80px 48px;
+  position: relative;
+  z-index: 2;
+  background: var(--ink);
+}
+#ch-cover.active { display: flex; }
+
+.cover-seal {
+  font-size: 72px;
+  margin-bottom: 24px;
+  animation: sealPulse 3s ease-in-out infinite;
+}
+@keyframes sealPulse {
+  0%,100%{filter:drop-shadow(0 0 8px rgba(200,150,10,0.4))}
+  50%{filter:drop-shadow(0 0 24px rgba(200,150,10,0.8))}
+}
+
+.cover-subtitle-top {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  letter-spacing: 6px;
+  color: var(--gold-dim);
+  margin-bottom: 16px;
+}
+
+.cover-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(42px, 8vw, 96px);
+  font-weight: 900;
+  color: var(--parchment);
+  line-height: 0.95;
+  margin-bottom: 8px;
+}
+.cover-title span { color: var(--gold); display: block; }
+
+.cover-edition {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px;
+  letter-spacing: 5px;
+  color: var(--gold-dim);
+  margin-bottom: 40px;
+}
+
+.cover-line {
+  width: 120px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin: 0 auto 32px;
+}
+
+.cover-desc {
+  font-family: 'Crimson Pro', serif;
+  font-size: 18px;
+  font-style: italic;
+  color: rgba(242,234,214,0.55);
+  max-width: 480px;
+  margin: 0 auto 48px;
+  line-height: 1.7;
+}
+
+.cover-toc {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+  max-width: 600px;
+  margin: 0 auto 48px;
+  text-align: left;
+}
+.toc-item {
+  display: flex; gap: 10px; align-items: baseline;
+  font-size: 13px;
+  color: rgba(242,234,214,0.4);
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.2s;
+}
+.toc-item:hover { color: var(--gold); }
+.toc-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--gold-dim);
+  min-width: 24px;
+}
+
+.cover-start {
+  background: var(--gold);
+  color: var(--ink);
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 4px;
+  font-size: 16px;
+  padding: 16px 48px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+}
+.cover-start:hover { background: var(--gold-bright); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+</style>
+</head>
+<body>
+
+<button class="mobile-toggle" onclick="toggleSidebar()">☰ MENU</button>
+
+<div class="app">
+<!-- ═══ SIDEBAR ═══ -->
+<nav id="sidebar">
+  <div class="sidebar-header">
+    <span class="sidebar-logo">⚜ SETTLERS: CAPITALISM</span>
+    <div class="sidebar-title">Digital Rulebook</div>
+    <span class="sidebar-edition">v5.1 — Software-First Edition</span>
+  </div>
+  <div class="sidebar-progress">
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar"></div></div>
+    <div class="progress-label"><span>Progress</span><span id="progressText">0 / 12</span></div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-group-label">Introduction</div>
+    <a class="nav-item active" onclick="goTo('cover')" href="#"><span class="nav-num">—</span>Cover &amp; Contents<span class="nav-check">✓</span></a>
+    <a class="nav-item" onclick="goTo('ch0')" href="#"><span class="nav-num">00</span>What Is This Game?<span class="nav-check">✓</span></a>
+    <a class="nav-item" onclick="goTo('ch1')" href="#"><span class="nav-num">01</span>Base Catan Rules<span class="nav-check">✓</span></a>
+
+    <div class="nav-group-label">Core Rules</div>
+    <a class="nav-item" onclick="goTo('ch2')" href="#"><span class="nav-num">02</span>Winning the Game<span class="nav-check">✓</span></a>
+    <a class="nav-item" onclick="goTo('ch3')" href="#"><span class="nav-num">03</span>Turn Structure<span class="nav-check">✓</span></a>
+    <a class="nav-item" onclick="goTo('ch4')" href="#"><span class="nav-num">04</span>Build Costs<span class="nav-check">✓</span></a>
+    <a class="nav-item" onclick="goTo('ch5')" href="#"><span class="nav-num">05</span>Rankings &amp; Tax<span class="nav-check">✓</span></a>
+
+    <div class="nav-group-label">Economy</div>
+    <a class="nav-item" onclick="goTo('ch6')" href="#"><span class="nav-num">06</span>Banking &amp; Loans<span class="nav-check">✓</span></a>
+    <a class="nav-item" onclick="goTo('ch7')" href="#"><span class="nav-num">07</span>Stock Market<span class="nav-check">✓</span></a>
+    <a class="nav-item" onclick="goTo('ch8')" href="#"><span class="nav-num">08</span>Shipping &amp; Rentals<span class="nav-check">✓</span></a>
+
+    <div class="nav-group-label">Events</div>
+    <a class="nav-item" onclick="goTo('ch9')" href="#"><span class="nav-num">09</span>Economic Events<span class="nav-check">✓</span></a>
+    <a class="nav-item" onclick="goTo('ch10')" href="#"><span class="nav-num">10</span>The Bank Collapse<span class="nav-check">✓</span></a>
+
+    <div class="nav-group-label">Reference</div>
+    <a class="nav-item" onclick="goTo('ch11')" href="#"><span class="nav-num">11</span>Quick Reference<span class="nav-check">✓</span></a>
+  </div>
+  <div class="sidebar-footer">
+    <a href="index.html" class="sidebar-link">← Back to Home</a>
+    <a href="settlersb3.html" class="sidebar-link primary">▶ Launch Game</a>
+  </div>
+</nav>
+
+<!-- ═══ MAIN ═══ -->
+<main id="main">
+  <div class="topbar">
+    <div class="topbar-breadcrumb">
+      <span>Settlers: Capitalism</span>
+      <span class="sep">›</span>
+      <span class="current" id="topbarCurrent">Cover</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="topbar-btn" onclick="prevChapter()">← Prev</button>
+      <button class="topbar-btn" onclick="nextChapter()">Next →</button>
+      <a href="settlersb3.html" class="topbar-btn highlight">▶ Launch Game</a>
+    </div>
+  </div>
+
+  <!-- ═══ COVER ═══ -->
+  <div id="ch-cover" class="chapter active" style="background:var(--ink);min-height:calc(100vh - 52px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 48px;position:relative;z-index:2;max-width:100%;">
+    <div class="cover-seal">⚜</div>
+    <div class="cover-subtitle-top">OFFICIAL DIGITAL RULEBOOK</div>
+    <h1 class="cover-title" style="color:var(--parchment);">Settlers<span>Capitalism</span></h1>
+    <div class="cover-edition">Version 5.1 — Software-First Edition</div>
+    <div class="cover-line"></div>
+    <p class="cover-desc">"Classic Catan. Loans, stocks, recessions, taxation, shipping, and the occasional ritualistic collapse of the entire financial system."</p>
+    <div class="cover-toc">
+      <div class="toc-item" onclick="goTo('ch0')"><span class="toc-num">00</span>What Is This?</div>
+      <div class="toc-item" onclick="goTo('ch1')"><span class="toc-num">01</span>Base Catan</div>
+      <div class="toc-item" onclick="goTo('ch2')"><span class="toc-num">02</span>Winning</div>
+      <div class="toc-item" onclick="goTo('ch3')"><span class="toc-num">03</span>Turn Structure</div>
+      <div class="toc-item" onclick="goTo('ch4')"><span class="toc-num">04</span>Build Costs</div>
+      <div class="toc-item" onclick="goTo('ch5')"><span class="toc-num">05</span>Tax &amp; Rankings</div>
+      <div class="toc-item" onclick="goTo('ch6')"><span class="toc-num">06</span>Banking &amp; Loans</div>
+      <div class="toc-item" onclick="goTo('ch7')"><span class="toc-num">07</span>Stocks</div>
+      <div class="toc-item" onclick="goTo('ch8')"><span class="toc-num">08</span>Shipping &amp; Rent</div>
+      <div class="toc-item" onclick="goTo('ch9')"><span class="toc-num">09</span>Economic Events</div>
+      <div class="toc-item" onclick="goTo('ch10')"><span class="toc-num">10</span>Bank Collapse</div>
+      <div class="toc-item" onclick="goTo('ch11')"><span class="toc-num">11</span>Quick Reference</div>
+    </div>
+    <button class="cover-start" onclick="goTo('ch0')">BEGIN READING →</button>
+  </div>
+
+  <!-- ═══ CH 00 — WHAT IS THIS ═══ -->
+  <div id="ch-ch0" class="chapter">
+    <div class="ch-number">00</div>
+    <div class="ch-eyebrow">Introduction</div>
+    <h1 class="ch-title">What Is<br><em>Settlers: Capitalism?</em></h1>
+    <p class="ch-subtitle">A love letter to chaos, debt, and the beauty of ruined friendships.</p>
+    <div class="ch-divider"></div>
+
+    <p>Settlers: Capitalism is a <strong>fan-made expansion layer</strong> built on top of the classic board game <em>Catan</em> (formerly known as <em>Settlers of Catan</em>). You still need a physical Catan board, pieces, and dice. What this system adds is an entire living economic engine — powered by software — that runs alongside the base game.</p>
+
+    <p>Where standard Catan ends at trading and building, Settlers: Capitalism introduces a full financial ecosystem: savings accounts, variable-rate loans, a live stock market, rental income, global shipping orders, progressive taxation, and spontaneous economic disasters that nobody voted for.</p>
+
+    <div class="callout tip" data-icon="💡">
+      <div class="callout-label">How to Read This Rulebook</div>
+      <p>Chapters 01 covers the base Catan mechanics — read this if you're new. Chapters 02–11 are the Capitalism rules layered on top. Each chapter builds on the last. The <strong>software handles all the math</strong> automatically; this rulebook explains the <em>why</em> behind the systems.</p>
+    </div>
+
+    <h2>What You Need</h2>
+    <ul>
+      <li>A physical <strong>Catan board</strong> (base game, any edition)</li>
+      <li>One shared device running the <strong>Settlers: Capitalism software</strong></li>
+      <li>2–4 players (or more with expansion boards)</li>
+      <li>A Bank Manager — one player designated to perform the ritual if required</li>
+      <li>A willingness to have your savings wiped at any moment</li>
+    </ul>
+
+    <h2>The Philosophy</h2>
+    <p>Standard Catan is a beautiful game of resource management and negotiation. Settlers: Capitalism takes that foundation and asks: <em>what if the board game also had a housing market, a stock exchange, and the occasional depression?</em></p>
+
+    <p>The answer, it turns out, is that the game becomes significantly more chaotic, significantly more political, and significantly more fun. Every economic decision has cascading consequences. A well-timed loan can secure a City that wins you the game. A late repayment can block you from victory for three agonizing turns. A Bank Collapse can erase everyone's savings in an instant.</p>
+
+    <div class="callout warning" data-icon="⚠️">
+      <div class="callout-label">Friendship Warning</div>
+      <p>This game has been known to damage relationships. The taxation system is particularly contentious. Proceed with people you trust — or people you're willing to lose.</p>
+    </div>
+
+    <h2>The Software</h2>
+    <p>The Settlers: Capitalism software is a <strong>digital banker assistant</strong> that automatically tracks:</p>
+    <ul>
+      <li>Each player's hand resources vs. saved (banked) resources</li>
+      <li>All active loans, interest accrual, and overdue penalties</li>
+      <li>Stock prices — updated dynamically each turn</li>
+      <li>Economic events (Boom, Recession, Depression, Crisis, Bank Collapse)</li>
+      <li>Rentals, shipping orders, and debit/credit card maintenance</li>
+      <li>Victory Points and win eligibility</li>
+    </ul>
+    <p>The software is the single source of truth. If there's a dispute, the software is correct. Except for the Bank Collapse ritual. That requires human intervention.</p>
+
+    <div class="ch-nav">
+      <span></span>
+      <button class="ch-nav-btn" onclick="nextChapter()">Chapter 01: Base Catan Rules →</button>
+    </div>
+  </div>
+
+  <!-- ═══ CH 01 — BASE CATAN ═══ -->
+  <div id="ch-ch1" class="chapter">
+    <div class="ch-number">01</div>
+    <div class="ch-eyebrow">Foundation</div>
+    <h1 class="ch-title">Base Catan<br><em>How the Board Works</em></h1>
+    <p class="ch-subtitle">If you already know Catan, skim this. If you don't, read every word.</p>
+    <div class="ch-divider"></div>
+
+    <p>Settlers: Capitalism is built on top of the standard Catan ruleset. This chapter covers the base mechanics. Everything in Chapters 02–11 is <em>layered on top</em> of this foundation.</p>
+
+    <h2>The Resources</h2>
+    <p>There are five resource types in Catan. Each hex on the board produces one type. When the matching number is rolled, everyone with a settlement or city adjacent to that hex receives that resource.</p>
+
+    <div class="resource-grid">
+      <div class="resource-chip">
+        <span class="rc-icon">🐑</span>
+        <span class="rc-name">WOOL</span>
+        <span class="rc-source">Pasture</span>
+        <div class="rc-tooltip">Used for Settlements &amp; Dev Cards. Boosts on 5, 10.</div>
+      </div>
+      <div class="resource-chip">
+        <span class="rc-icon">🪵</span>
+        <span class="rc-name">WOOD</span>
+        <span class="rc-source">Forest</span>
+        <div class="rc-tooltip">Used for Roads &amp; Settlements. Boosts on 3, 11.</div>
+      </div>
+      <div class="resource-chip">
+        <span class="rc-icon">🧱</span>
+        <span class="rc-name">BRICK</span>
+        <span class="rc-source">Hills</span>
+        <div class="rc-tooltip">Used for Roads &amp; Settlements. Boosts on 4, 9.</div>
+      </div>
+      <div class="resource-chip">
+        <span class="rc-icon">⛏️</span>
+        <span class="rc-name">ORE</span>
+        <span class="rc-source">Mountains</span>
+        <div class="rc-tooltip">Used for Cities &amp; Dev Cards. Boosts on 9, 12.</div>
+      </div>
+      <div class="resource-chip">
+        <span class="rc-icon">🌾</span>
+        <span class="rc-name">GRAIN</span>
+        <span class="rc-source">Fields</span>
+        <div class="rc-tooltip">Used for Settlements, Cities &amp; Dev Cards. Boosts on 3, 4.</div>
+      </div>
+    </div>
+    <p style="font-size:14px;color:var(--parchment4);font-style:italic;">↑ Hover each resource to see its uses and dice boost rolls.</p>
+
+    <h2>Your Turn (Base Game)</h2>
+    <div class="steps">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Roll Both Dice</div>
+          <div class="step-desc">The sum determines which hexes produce. All players with settlements or cities adjacent to matching hexes receive resources. Settlements yield 1, Cities yield 2.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Trade</div>
+          <div class="step-desc">Negotiate with other players (domestic trade). Only the active player can initiate trades — others cannot trade amongst themselves. You may also trade with the bank at 4:1, or better rates at harbors (3:1 generic, 2:1 specific).</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Build</div>
+          <div class="step-desc">Spend resources to place roads, settlements, cities, or buy development cards. You can build as many things as you can afford in one turn.</div>
+        </div>
+      </div>
+    </div>
+
+    <h2>Rolling a 7</h2>
+    <p>When a 7 is rolled, no resources are produced. Instead:</p>
+    <ol>
+      <li>Every player with <strong>more than 7 cards</strong> must discard half (round down).</li>
+      <li>The active player moves the <strong>Robber</strong> to any hex, blocking its production until moved again.</li>
+      <li>The active player <strong>steals 1 random card</strong> from a player with a settlement or city adjacent to the Robber's new hex.</li>
+    </ol>
+    <div class="callout info" data-icon="🛡️">
+      <div class="callout-label">Capitalism Modifier</div>
+      <p>In Settlers: Capitalism, <strong>banked (saved) resources are NOT affected by the Robber</strong>. Only resources in your hand can be stolen or discarded on a 7. This makes saving strategically valuable — and also means the Robber is slightly less terrifying than in base Catan.</p>
+    </div>
+
+    <h2>Development Cards</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Type</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Knight</strong></td><td>Move the Robber. Steal from an adjacent player. Collect 3 to claim Largest Army (+2 VP).</td></tr>
+          <tr><td><strong>Road Building</strong></td><td>Place 2 free roads immediately.</td></tr>
+          <tr><td><strong>Year of Plenty</strong></td><td>Take any 2 resources from the supply.</td></tr>
+          <tr><td><strong>Monopoly</strong></td><td>Name a resource type. All other players give you every card of that type.</td></tr>
+          <tr><td><strong>Victory Point</strong></td><td>Hidden until you declare victory. Worth 1 VP each.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout rule" data-icon="📖">
+      <div class="callout-label">Key Rule</div>
+      <p>You can only play <strong>1 development card per turn</strong>. You cannot play a card bought on the same turn (except Victory Point cards when winning).</p>
+    </div>
+
+    <h2>Harbors</h2>
+    <p>Settlements or cities built on harbor intersections unlock better maritime trade rates:</p>
+    <ul>
+      <li><strong>Generic Harbor (3:1):</strong> Trade 3 of any same resource for 1 of anything.</li>
+      <li><strong>Specific Harbor (2:1):</strong> Trade 2 of the shown resource for 1 of anything.</li>
+      <li><strong>No Harbor:</strong> Always 4:1 with the bank.</li>
+    </ul>
+
+    <h2>Longest Road &amp; Largest Army</h2>
+    <p><strong>Longest Road:</strong> The first player to build a continuous road of at least 5 segments claims the Longest Road card (+2 VP). If another player builds longer, they take it immediately — a 4 VP swing.</p>
+    <p><strong>Largest Army:</strong> The first player to play 3 Knight cards claims this card (+2 VP). If another player plays more knights, they take it.</p>
+
+    <div class="callout tip" data-icon="♟️">
+      <div class="callout-label">Strategic Note</div>
+      <p>You can break an opponent's Longest Road by building a settlement on an intersection along their road. This can cause a massive VP swing even mid-game.</p>
+    </div>
+
+    <div class="ch-nav">
+      <button class="ch-nav-btn" onclick="prevChapter()">← Chapter 00</button>
+      <button class="ch-nav-btn" onclick="nextChapter()">Chapter 02: Winning →</button>
+    </div>
+  </div>
+
+  <!-- ═══ CH 02 — WINNING ═══ -->
+  <div id="ch-ch2" class="chapter">
+    <div class="ch-number">02</div>
+    <div class="ch-eyebrow">Core Rules</div>
+    <h1 class="ch-title">Winning<br><em>the Game</em></h1>
+    <p class="ch-subtitle">10 Victory Points on your own turn. Simple. Except it isn't.</p>
+    <div class="ch-divider"></div>
+
+    <p>The goal of Settlers: Capitalism is identical to base Catan: be the first player to reach <strong>10 Victory Points</strong> on your own turn. However, Capitalism introduces several <span class="tag-red">Win Blockers</span> that can prevent you from declaring victory even when you have the points.</p>
+
+    <h2>Victory Point Sources</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Source</th><th>VP Value</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>🏠 Settlement</td><td class="gold">1 VP</td><td>Built on board intersections</td></tr>
+          <tr><td>🏙️ City</td><td class="gold">2 VP</td><td>Upgrades a settlement (does not stack — replaces it)</td></tr>
+          <tr><td>🛣️ Longest Road</td><td class="gold">+2 VP</td><td>Must have 5+ continuous roads AND be the longest</td></tr>
+          <tr><td>⚔️ Largest Army</td><td class="gold">+2 VP</td><td>Must have 3+ knights AND be the largest</td></tr>
+          <tr><td>🃏 VP Dev Card</td><td class="gold">+1 VP each</td><td>Hidden until declaring victory</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout tip" data-icon="🧮">
+      <div class="callout-label">Quick Math</div>
+      <p>You start with 2 settlements (2 VP). To win, you need 8 more. Maximum from buildings alone: 5 settlements (5 VP) + 4 cities (8 VP) = 13 VP. But you only get 5 settlements and 4 cities total, and cities replace settlements. In practice: 1 settlement + 4 cities = 1 + 8 = 9 VP from buildings. Then you need 1 more from roads, army, or dev cards.</p>
+    </div>
+
+    <h2>Win Blockers</h2>
+    <p>Even if you have 10+ VP, you <strong>cannot declare victory</strong> while any of these conditions are active:</p>
+
+    <div class="callout danger" data-icon="🚫">
+      <div class="callout-label">Win Blocker #1 — Overdue Loan</div>
+      <p>Any <strong>overdue loan</strong> — standard or credit — blocks victory. You must repay the full amount (including penalties) before you can win.</p>
+    </div>
+    <div class="callout danger" data-icon="⏳">
+      <div class="callout-label">Win Blocker #2 — Post-Repayment Wait</div>
+      <p>After paying off an overdue loan, you must wait <strong>3 full turns</strong> before you can declare victory. This prevents players from strategically delaying repayment until they're ready to win.</p>
+    </div>
+    <div class="callout danger" data-icon="📉">
+      <div class="callout-label">Win Blocker #3 — Active Recession or Depression</div>
+      <p>Victory is suspended during active <strong>Recession</strong> (4 turns) and throughout all phases of a <strong>Depression</strong> (7 turns). No one can win while the economy is in freefall.</p>
+    </div>
+
+    <h2>Declaring Victory</h2>
+    <p>At the start of <strong>your turn</strong>, if you have 10+ VP and no active blockers, you may declare victory. Reveal any hidden Victory Point dev cards at this moment. The game ends immediately.</p>
+
+    <div class="callout warning" data-icon="⚠️">
+      <div class="callout-label">Timing Rule</div>
+      <p>You cannot win on another player's turn — even if you would have enough VP. Wait for your turn, then declare. If someone else reaches 10 VP between your turns, they win before you get the chance.</p>
+    </div>
+
+    <div class="ch-nav">
+      <button class="ch-nav-btn" onclick="prevChapter()">← Chapter 01</button>
+      <button class="ch-nav-btn" onclick="nextChapter()">Chapter 03: Turn Structure →</button>
+    </div>
+  </div>
+
+  <!-- ═══ CH 03 — TURN STRUCTURE ═══ -->
+  <div id="ch-ch3" class="chapter">
+    <div class="ch-number">03</div>
+    <div class="ch-eyebrow">Core Rules</div>
+    <h1 class="ch-title">Turn<br><em>Structure</em></h1>
+    <p class="ch-subtitle">Every turn, in five clean steps. The software handles steps 2 and 4.</p>
+    <div class="ch-divider"></div>
+
+    <p>Each turn in Settlers: Capitalism follows a fixed five-step structure. Steps 2 and 4 are resolved automatically by the software. Steps 1, 3, and 5 require player action.</p>
+
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-label">STEP 1</div>
+        <div class="tl-title">Roll Dice</div>
+        <div class="tl-body">Roll both dice. Resources are produced for all settlements and cities on matching hexes. <span class="tag-red">Rolling the exact same total as the previous turn triggers a Bank Collapse.</span> The software tracks the previous roll automatically.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-label">STEP 2 — AUTO</div>
+        <div class="tl-title">Resource Distribution</div>
+        <div class="tl-body">The software automatically updates every player's hand and banked resources. <strong>Banked resources are not affected by the Robber on a 7.</strong> Only hand resources are at risk of theft, event penalties, or discarding.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-label">STEP 3 — ACTIONS</div>
+        <div class="tl-title">Optional Actions (Any Order)</div>
+        <div class="tl-body">In any order, the active player may take any or none of the following actions:
+          <ul style="margin-top:10px;">
+            <li><strong>Build</strong> — roads, settlements, cities, dev cards</li>
+            <li><strong>Trade</strong> — with other players or the bank/harbors</li>
+            <li><strong>Bank</strong> — deposit/withdraw savings, take loans, use cards</li>
+            <li><strong>Shipping</strong> — place resource orders for future delivery</li>
+            <li><strong>Rentals</strong> — set or collect rental arrangements</li>
+            <li><strong>Gamble</strong> — use the gambling feature at your peril</li>
+            <li><strong>Stocks</strong> — buy or sell resource shares</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-label">STEP 4 — AUTO</div>
+        <div class="tl-title">Event Resolution</div>
+        <div class="tl-body">The software automatically checks for overdue loans, approaching maintenance payments, active economic events, and Bank Collapse triggers. Anything flagged is resolved before the turn ends.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-label">STEP 5</div>
+        <div class="tl-title">Turn Summary</div>
+        <div class="tl-body">All players review VP totals, hand resources, banked amounts, active loans, and rankings. If the active player has 10+ VP and no blockers, they may declare victory. Otherwise, pass the device to the next player.</div>
+      </div>
+    </div>
+
+    <div class="callout tip" data-icon="🎯">
+      <div class="callout-label">Strategy: Order of Operations</div>
+      <p>Since Step 3 actions can be taken in any order, consider your sequencing carefully. For example: <em>withdraw savings → buy stocks → trade → build</em> vs. <em>build first → then trade for what you're missing</em>. The order matters, especially when loans, maintenance, and events interact.</p>
+    </div>
+
+    <div class="ch-nav">
+      <button class="ch-nav-btn" onclick="prevChapter()">← Chapter 02</button>
+      <button class="ch-nav-btn" onclick="nextChapter()">Chapter 04: Build Costs →</button>
+    </div>
+  </div>
+
+  <!-- ═══ CH 04 — BUILD COSTS ═══ -->
+  <div id="ch-ch4" class="chapter">
+    <div class="ch-number">04</div>
+    <div class="ch-eyebrow">Core Rules</div>
+    <h1 class="ch-title">Build<br><em>Costs</em></h1>
+    <p class="ch-subtitle">What you need to build, and how cards change the math.</p>
+    <div class="ch-divider"></div>
+
+    <p>Building is the primary path to Victory Points. To place a structure on the board, you pay the listed resources from your hand to the bank. Savings cannot be used for building directly — you must withdraw first.</p>
+
+    <h2>Standard Build Costs</h2>
+    <div class="build-grid">
+      <div class="build-card">
+        <div class="bc-icon">🛣️</div>
+        <div class="bc-name">Road</div>
+        <div class="bc-cost">🪵 1 Wood<br>🧱 1 Brick</div>
+        <div class="bc-note">Must connect to your existing roads, settlements, or cities.</div>
+      </div>
+      <div class="build-card">
+        <div class="bc-icon">🏠</div>
+        <div class="bc-name">Settlement</div>
+        <div class="bc-cost">🪵 1 Wood<br>🧱 1 Brick<br>🐑 1 Wool<br>🌾 1 Grain</div>
+        <div class="bc-note">Must connect to your road. Observe the Distance Rule.</div>
+      </div>
+      <div class="build-card">
+        <div class="bc-icon">🏙️</div>
+        <div class="bc-name">City</div>
+        <div class="bc-cost">⛏️ 3 Ore<br>🌾 2 Grain</div>
+        <div class="bc-note">Upgrades an existing settlement. Returns settlement to supply.</div>
+      </div>
+      <div class="build-card">
+        <div class="bc-icon">🃏</div>
+        <div class="bc-name">Dev Card</div>
+        <div class="bc-cost">⛏️ 1 Ore<br>🐑 1 Wool<br>🌾 1 Grain</div>
+        <div class="bc-note">Drawn from top of deck. Effect varies. Kept hidden.</div>
+      </div>
+    </div>
+
+    <h2>Card Perks</h2>
+    <p>Debit and Credit cards modify building costs in different ways:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Card</th><th>Building Perk</th><th>Catch</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Debit Card</strong></td>
+            <td>Ignore 1 resource cost when building (you choose which)</td>
+            <td>Costs 2 resources to open + 1 maintenance every 3 turns</td>
+          </tr>
+          <tr>
+            <td><strong>Credit Card</strong></td>
+            <td>Automatically covers 1 missing resource when building</td>
+            <td>Creates a <span class="tag-red">Credit Loan</span> — due in 2 turns with 10% interest</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warning" data-icon="💳">
+      <div class="callout-label">Credit Card Warning</div>
+      <p>The Credit Card's building perk sounds amazing. It is. But <strong>every time it activates, it creates a Credit Loan</strong>. Credit Loans are due in just 2 turns. Miss that window and you're paying +20% per late turn — and you're blocked from winning, trading, and building. Use the credit card strategically, not habitually.</p>
+    </div>
+
+    <h2>Boom Modifier</h2>
+    <p>During an active <span class="tag-green">Boom</span> event (3 turns), all build costs are reduced by 1 resource, with a minimum of 1 resource per build. This is the best time to spam settlements if you've been saving resources.</p>
+
+    <h2>The Distance Rule</h2>
+    <p>A settlement can only be placed at an intersection if <strong>all 3 adjacent intersections are empty</strong> — no settlements or cities of any player can be within 1 road segment. This applies at all times. Plan your road network with future settlement sites in mind.</p>
+
+    <div class="callout tip" data-icon="🗺️">
+      <div class="callout-label">Pro Tip</div>
+      <p>Build roads to "claim" settlement spots before you can afford the settlement. Your opponents can't build there as long as you have a road leading to the adjacent intersection — as long as no other settlement violates the Distance Rule.</p>
+    </div>
+
+    <div class="ch-nav">
+      <button class="ch-nav-btn" onclick="prevChapter()">← Chapter 03</button>
+      <button class="ch-nav-btn" onclick="nextChapter()">Chapter 05: Rankings & Tax →</button>
+    </div>
+  </div>
+
+  <!-- ═══ CH 05 — RANKINGS & TAX ═══ -->
+  <div id="ch-ch5" class="chapter">
+    <div class="ch-number">05</div>
+    <div class="ch-eyebrow">Core Rules</div>
+    <h1 class="ch-title">Rankings<br><em>&amp; Taxation</em></h1>
+    <p class="ch-subtitle">The rich get taxed. The poor get a break. The daring get caught.</p>
+    <div class="ch-divider"></div>
+
+    <p>Every player has a <strong>Rank</strong> determined by their total asset value. Rankings affect how much tax you pay every 5 global turns — and unlock the option of tax evasion for the bold.</p>
+
+    <h2>How Rankings Work</h2>
+    <p>Rankings are calculated from <strong>assets only</strong>. Hand resources do NOT count.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Asset Type</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>🏠 Settlement</td><td class="gold">1 unit</td></tr>
+          <tr><td>🏙️ City</td><td class="gold">2 units</td></tr>
+          <tr><td>🛣️ Road</td><td>0 units</td></tr>
+          <tr><td>💰 Savings (banked resources)</td><td class="gold">Face value</td></tr>
+          <tr><td>📈 Stock holdings</td><td class="gold">Current market value</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="rank-row">
+      <div class="rank-badge rich">
+        <div class="rb-title">RICH</div>
+        <div class="rb-desc">Top 2 players by total assets</div>
+      </div>
+      <div class="rank-badge middle">
+        <div class="rb-title">MIDDLE</div>
+        <div class="rb-desc">Everyone else</div>
+      </div>
+      <div class="rank-badge poor">
+        <div class="rb-title">POOR</div>
+        <div class="rb-desc">Lowest player — exempt</div>
+      </div>
+    </div>
+
+    <div class="callout info" data-icon="ℹ️">
+      <div class="callout-label">Note on Rankings</div>
+      <p>Rankings are recalculated by the software each turn. You can move between tiers as your savings fluctuate, your properties are built or lost, and stock prices shift. A Bank Collapse can dramatically reshuffle rankings by wiping savings and crashing stocks.</p>
+    </div>
+
+    <h2>Taxation</h2>
+    <p>Every <strong>5 global turns</strong>, a tax event fires automatically. Tax is charged per property unit you own.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Rank</th><th>Tax Rate</th><th>Example: 4 property units</th></tr></thead>
+        <tbody>
+          <tr><td class="gold">Rich</td><td class="red">2 resources per property unit</td><td class="red">8 resources</td></tr>
+          <tr><td>Middle</td><td>1 resource per property unit</td><td>4 resources</td></tr>
+          <tr><td>Poor</td><td class="green">Exempt</td><td class="green">0 resources</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Payment Order</h3>
+    <p>When tax is due, you pay from your resources in this order:</p>
+    <ol>
+      <li><strong>Hand resources</strong> — pay directly from your hand</li>
+      <li><strong>Sell resources</strong> — if hand is insufficient, sell to generate resources</li>
+      <li><strong>Sell property</strong> — forced sales at <strong>half price</strong> if still insufficient</li>
+    </ol>
+
+    <div class="callout warning" data-icon="🏚️">
+      <div class="callout-label">Forced Property Sale</div>
+      <p>Being forced to sell property at half value is extremely punishing. Keep enough liquid resources to cover your expected tax bill, especially if you're in the Rich tier with significant property holdings.</p>
+    </div>
+
+    <h2>Tax Evasion</h2>
+    <p>Once per tax cycle, any player can attempt to evade taxes. <strong>Roll 1 die:</strong></p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Roll</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>1 – 3</td><td class="red"><strong>Caught.</strong> Pay double tax.</td></tr>
+          <tr><td>4 – 6</td><td class="green"><strong>Escaped.</strong> Pay nothing this cycle.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout tip" data-icon="🎲">
+      <div class="callout-label">When to Evade</div>
+      <p>Tax evasion is a 50/50. It's highest-value when you're Rich with a large property portfolio — the double-tax penalty hurts, but the potential savings are enormous. If you're Middle tier with just a few properties, the risk/reward is less compelling.</p>
+    </div>
+
+    <div class="ch-nav">
+      <button class="ch-nav-btn" onclick="prevChapter()">← Chapter 04</button>
+      <button class="ch-nav-btn" onclick="nextChapter()">Chapter 06: Banking & Loans →</button>
+    </div>
+  </div>
+
+  <!-- ═══ CH 06 — BANKING ═══ -->
+  <div id="ch-ch6" class="chapter">
+    <div class="ch-number">06</div>
+    <div class="ch-eyebrow">Economy</div>
+    <h1 class="ch-title">Banking<br><em>&amp; Loans</em></h1>
+    <p class="ch-subtitle">Safe storage. Dangerous debt. The difference matters.</p>
+    <div class="ch-divider"></div>
+
+    <p>The banking system is the economic spine of Settlers: Capitalism. It separates your resources into two categories: <strong>hand resources</strong> (fast, flexible, risky) and <strong>saved resources</strong> (slow, safe, productive). Loans let you borrow against the future — at a cost.</p>
+
+    <h2>Hand vs. Saved Resources</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>Hand Resources</th><th>Saved (Banked) Resources</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Access</strong></td><td>Instant — use for any action</td><td>Must be withdrawn first (or via debit card)</td></tr>
+          <tr><td><strong>Robber (7)</strong></td><td class="red">Can be stolen. Discard if 8+.</td><td class="green">Safe. Never affected by 7.</td></tr>
+          <tr><td><strong>Events</strong></td><td class="red">At risk from Bank Collapse, etc.</td><td class="red">Wiped by Bank Collapse only.</td></tr>
+          <tr><td><strong>Building</strong></td><td class="green">Use directly</td><td class="red">Cannot use directly — withdraw first</td></tr>
+          <tr><td><strong>Growth</strong></td><td>None</td><td class="green">+1 per 3 banked, every 3 turns</td></tr>
+          <tr><td><strong>Ranking</strong></td><td>Not counted</td><td class="gold">Counts toward asset ranking</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Savings Account</h2>
+    <ul>
+      <li><strong>Cost to open:</strong> 2 resources (one-time)</li>
+      <li><strong>Growth:</strong> Every 3 turns, earn +1 resource for every 3 resources you have banked</li>
+      <li><strong>7-roll bonus:</strong> When a 7 is rolled, earn +1 resource per resource <em>type</em> currently in savings</li>
+      <li><strong>Safe from:</strong> The Robber, hand-discard rules, most events</li>
+      <li><strong>Not safe from:</strong> Bank Collapse (wipes savings entirely)</li>
+    </ul>
+
+    <div class="callout tip" data-icon="📈">
+      <div class="callout-label">Savings Strategy</div>
+      <p>The 7-roll bonus rewards <em>diversified</em> savings. Storing 1 of each resource type (5 resources total) yields +5 bonus on any 7 roll — significantly more than the base growth rate. Diversify your savings if you can afford the range.</p>
+    </div>
+
+    <h2>Debit Card</h2>
+    <ul>
+      <li><strong>Cost:</strong> 2 resources to issue</li>
+      <li><strong>Maintenance:</strong> 1 resource every 3 turns</li>
+      <li><strong>Perks:</strong> Direct withdrawal from savings (no manual step needed) + <strong>1 resource discount</strong> on any build action</li>
+    </ul>
+
+    <h2>Credit Card</h2>
+    <ul>
+      <li><strong>Cost:</strong> 3 resources to issue</li>
+      <li><strong>Maintenance:</strong> 1 resource every 5 turns</li>
+      <li><strong>Perk:</strong> Automatically covers 1 missing resource when building → creates a <span class="tag-red">Credit Loan</span></li>
+    </ul>
+
+    <h2>Loan Types</h2>
+
+    <h3>Credit Loan (from Credit Card)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Base interest</td><td class="gold">10%</td></tr>
+          <tr><td>Due in</td><td>2 turns</td></tr>
+          <tr><td>Late penalty</td><td class="red">+20% per turn overdue</td></tr>
+          <tr><td>If overdue</td><td class="red">Blocks: winning, trading, building</td></tr>
+          <tr><td>After repayment</td><td class="red">3-turn wait before winning allowed</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Standard Loan</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Amount</td><td>Any amount of a single resource type</td></tr>
+          <tr><td>Base interest</td><td class="gold">20%</td></tr>
+          <tr><td>Late history penalty</td><td class="red">+5% per previous late repayment</td></tr>
+          <tr><td>Due in</td><td>5 turns</td></tr>
+          <tr><td>Late penalty</td><td class="red">+25% per turn overdue</td></tr>
+          <tr><td>If overdue</td><td class="red">Blocks: winning, trading, building + no new loans</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- LOAN CALCULATOR -->
+    <h2>Loan Calculator</h2>
+    <p>Use this to see what you'll actually owe before you borrow.</p>
+    <div class="calc-box">
+      <div class="calc-title">🧮 LOAN PAIN CALCULATOR</div>
+      <div class="calc-grid">
+        <div class="calc-field">
+          <label>Amount Borrowed (resources)</label>
+          <input type="number" id="lAmt" value="6" min="1" max="50" oninput="calcLoan()">
+        </div>
+        <div class="calc-field">
+          <label>Loan Type</label>
+          <select id="lType" onchange="calcLoan()">
+            <option value="standard">Standard (20% + 25%/late turn)</option>
+            <option value="credit">Credit Card (10% + 20%/late turn)</option>
+          </select>
+        </div>
+        <div class="calc-field">
+          <label>Turns Late (0 = on time)</label>
+          <input type="number" id="lLate" value="0" min="0" max="15" oninput="calcLoan()">
+        </div>
+        <div class="calc-field">
+          <label>Previous Late Repayments (standard only)</label>
+          <input type="number" id="lHistory" value="0" min="0" max="10" oninput="calcLoan()">
+        </div>
+      </div>
+      <div class="calc-result ok" id="calcResult">
+        <div>
+          <div class="cr-label">TOTAL OWED</div>
+          <div class="cr-amount" id="crAmount">8 resources</div>
+        </div>
+        <div class="cr-note" id="crNote">Paid on time. 20% interest applied.</div>
+      </div>
+    </div>
+
+    <div class="callout danger" data-icon="💀">
+      <div class="callout-label">The Debt Spiral</div>
+      <p>A standard loan of 10 resources, missed by 3 turns, with 2 previous late marks, costs <strong>10 × 1.30 × 1.25³ = ~25 resources</strong>. That's more than double. And you can't trade, build, or win while it's outstanding. The software enforces this. Plan repayment before you borrow.</p>
+    </div>
+
+    <div class="ch-nav">
+      <button class="ch-nav-btn" onclick="prevChapter()">← Chapter 05</button>
+      <button class="ch-nav-btn" onclick="nextChapter()">Chapter 07: Stock Market →</button>
+    </div>
+  </div>
+
+  <!-- ═══ CH 07 — STOCKS ═══ -->
+  <div id="ch-ch7" class="chapter">
+    <div class="ch-number">07</div>
+    <div class="ch-eyebrow">Economy</div>
+    <h1 class="ch-title">The Stock<br><em>Market</em></h1>
+    <p class="ch-subtitle">Buy low. Sell high. Panic when the dice roll badly.</p>
+    <div class="ch-divider"></div>
+
+    <p>Every resource type has a tradeable stock. You buy shares using resources and sell them back for resources. Prices fluctuate every turn based on the state of the game — creating opportunities for passive income and speculative plays.</p>
+
+    <div class="callout rule" data-icon="📋">
+      <div class="callout-label">Core Rule</div>
+      <p>You <strong>cannot buy stocks while any loan is overdue</strong>. You can always sell, regardless of loan status.</p>
+    </div>
+
+    <h2>How Prices Move</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Trigger</th><th>Price Effect</th></tr></thead>
+        <tbody>
+          <tr><td>Scarcity in market (few in hands)</td><td class="green">▲ Price rises</td></tr>
+          <tr><td>Hoarding / large savings holdings</td><td class="green">▲ Price rises</td></tr>
+          <tr><td>Rolling a 7</td><td>Random swing (up or down)</td></tr>
+          <tr><td>High production number rolled (resource floods market)</td><td class="red">▼ Slight decrease</td></tr>
+          <tr><td>Active <span class="tag-green">Boom</span></td><td class="green">+0.25 per turn</td></tr>
+          <tr><td>Active <span class="tag-gold">Crisis</span></td><td class="red">−0.20 per turn</td></tr>
+          <tr><td>Active <span class="tag-red">Recession</span></td><td class="red">−0.20 per turn</td></tr>
+          <tr><td>Active <span class="tag-red">Depression</span></td><td class="red">−0.40 per turn</td></tr>
+          <tr><td>Bank Collapse</td><td class="red">−50% instantly</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Dice Boosts &amp; Hurts</h2>
+    <p>Specific dice totals boost or hurt individual resource stock prices. The software applies these automatically each roll.</p>
+
+    <div class="stock-table-wrap">
+      <div class="stock-header">
+        <span>RESOURCE</span>
+        <span>BOOST ROLLS</span>
+        <span>HURT ROLLS</span>
+        <span>NOTES</span>
+      </div>
+      <div class="stock-row">
+        <div class="sr-name">🐑 Wool</div>
+        <div class="sr-boost">5, 10</div>
+        <div class="sr-hurt">2, 3</div>
+        <div class="sr-notes">Scarce pasture hex — spikes sharply on 5</div>
+      </div>
+      <div class="stock-row">
+        <div class="sr-name">🪵 Wood</div>
+        <div class="sr-boost">3, 11</div>
+        <div class="sr-hurt">6</div>
+        <div class="sr-notes">Roll 6 floods the market; low rolls keep price high</div>
+      </div>
+      <div class="stock-row">
+        <div class="sr-name">🧱 Brick</div>
+        <div class="sr-boost">4, 9</div>
+        <div class="sr-hurt">8</div>
+        <div class="sr-notes">Roll 8 is frequent — brick prices are volatile</div>
+      </div>
+      <div class="stock-row">
+        <div class="sr-name">⛏️ Ore</div>
+        <div class="sr-boost">9, 12</div>
+        <div class="sr-hurt">5, 10</div>
+        <div class="sr-notes">Rare hexes — price rises on 9 specifically</div>
+      </div>
+      <div class="stock-row">
+        <div class="sr-name">🌾 Grain</div>
+        <div class="sr-boost">3, 4</div>
+        <div class="sr-hurt">6, 8, 9</div>
+        <div class="sr-notes">Very common — multiple hurt rolls mean grain tanks often</div>
+      </div>
+    </div>
+
+    <h2>Strategy</h2>
+    <h3>Before a Boom</h3>
+    <p>If you anticipate a Boom event (common after a Depression), load up on stocks. Boom adds +0.25 per turn for 3 turns — that's a potential +0.75 gain per share on top of any baseline appreciation.</p>
+
+    <h3>Before a Recession</h3>
+    <p>Sell before a Recession if you can see it coming (after a Bank Collapse with few sellers). Recession drives prices down −0.20/turn for 4 turns.</p>
+
+    <h3>Dice Reading</h3>
+    <p>If a 5 is frequently being rolled, Wool stocks are being boosted. Buy Wool before the next 5. This sounds simple but requires you to track dice history — which the software shows in the game log.</p>
+
+    <div class="callout tip" data-icon="💹">
+      <div class="callout-label">Passive Income Play</div>
+      <p>Stocks don't have to be day-traded. Holding a diversified portfolio across all 5 resource types during stable economic periods generates consistent returns as natural scarcity fluctuations play out. It's less exciting but reliably profitable.</p>
+    </div>
+
+    <div class="ch-nav">
+      <button class="ch-nav-btn" onclick="prevChapter()">← Chapter 06</button>
+      <button class="ch-nav-btn" onclick="nextChapter()">Chapter 08: Shipping & Rentals →</button>
+    </div>
+  </div>
+
+  <!-- ═══ CH 08 — SHIPPING & RENTALS ═══ -->
+  <div id="ch-ch8" class="chapter">
+    <div class="ch-number">08</div>
+    <div class="ch-eyebrow">Economy</div>
+    <h1 class="ch-title">Shipping<br><em>&amp; Rentals</em></h1>
+    <p class="ch-subtitle">Passive income systems. Both get canceled in a downturn. Plan accordingly.</p>
+    <div class="ch-divider"></div>
+
+    <h2>Global Shipping</h2>
+    <p>Shipping lets you order any resource from the global market, delivered in a future turn. It's useful for securing resources you can't easily produce from your hex placement.</p>
+
+    <div class="callout rule" data-icon="📦">
+      <div class="callout-label">Core Rule</div>
+      <p>You <strong>cannot pay the shipping fee with the same resource type</strong> you're ordering. If you're ordering Ore, the fee must be paid in any other resource(s).</p>
+    </div>
+
+    <h3>Shipping Fees</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Order Size</th><th>Standard Fee</th><th>Expedited Fee</th></tr></thead>
+        <tbody>
+          <tr><td>1–2 units</td><td>+1 resource</td><td>+2 resources</td></tr>
+          <tr><td>3–6 units</td><td>+3 resources</td><td>+6 resources</td></tr>
+          <tr><td>7+ units</td><td>+4 resources</td><td>+8 resources</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Delivery Speed</h3>
+    <ul>
+      <li><strong>Standard:</strong> Arrives in 3 turns from order date</li>
+      <li><strong>Expedited:</strong> Arrives next turn — fee is doubled</li>
+    </ul>
+
+    <div class="callout danger" data-icon="🚢">
+      <div class="callout-label">Recession / Depression Warning</div>
+      <p>All shipping is <strong>suspended</strong> during Recession and Depression. Orders currently in transit are <strong>canceled</strong> with no refund. Do not place large orders if an economic downturn seems likely. The software will warn you if conditions are deteriorating.</p>
+    </div>
+
+    <div class="callout tip" data-icon="📦">
+      <div class="callout-label">Shipping Strategy</div>
+      <p>Shipping is best used to fill specific resource gaps — for example, ordering 3 Ore to complete a City when your board position doesn't produce mountains well. The 3-turn delay means you need to plan ahead. Expedited is almost never worth double the fee unless you're desperate for a win-threatening build.</p>
+    </div>
+
+    <h2>Rentals</h2>
+    <p>You can rent any of your properties — settlements, cities, or roads — to other players in exchange for resources. It's the Catan version of passive income.</p>
+
+    <h3>Rental Rules</h3>
+    <ul>
+      <li>The <strong>landlord</strong> retains full VP ownership. Renting does not transfer points.</li>
+      <li><strong>Settlements &amp; Cities:</strong> Tenant pays each turn the rental is active.</li>
+      <li><strong>Roads:</strong> Tenant pays every 3 turns.</li>
+      <li>Rental rates are negotiated between players — the software tracks and enforces the agreed terms.</li>
+      <li>Rentals are suspended during <span class="tag-red">Recession</span> and <span class="tag-red">Depression</span>. No payments occur during those periods.</li>
+    </ul>
+
+    <div class="callout tip" data-icon="🏠">
+      <div class="callout-label">Landlord Strategy</div>
+      <p>Renting a settlement in a high-production hex is lucrative. You keep the VP and receive passive resources every turn. The tenant benefits because they gain access to production from hexes they don't control. Both sides can win from a well-structured rental — just make sure you're getting the better deal.</p>
+    </div>
+
+    <div class="callout warning" data-icon="📉">
+      <div class="callout-label">Downturn Risk</div>
+      <p>If you're relying on rental income to repay a loan, a sudden Recession can cut off that income stream while the loan keeps accruing penalties. Always have a fallback repayment plan that doesn't depend on rentals continuing.</p>
+    </div>
+
+    <div class="ch-nav">
+      <button class="ch-nav-btn" onclick="prevChapter()">← Chapter 07</button>
+      <button class="ch-nav-btn" onclick="nextChapter()">Chapter 09: Economic Events →</button>
+    </div>
+  </div>
+
+  <!-- ═══ CH 09 — EVENTS ═══ -->
+  <div id="ch-ch9" class="chapter">
+    <div class="ch-number">09</div>
+    <div class="ch-eyebrow">Events</div>
+    <h1 class="ch-title">Economic<br><em>Events</em></h1>
+    <p class="ch-subtitle">Boom, Recession, Depression, Crisis. The market doesn't care about your plans.</p>
+    <div class="ch-divider"></div>
+
+    <p>Economic events are triggered automatically by the software based on in-game conditions — primarily the Bank Collapse. Each event has a fixed duration and a specific set of effects. Some events can chain into others.</p>
+
+    <div class="event-cards">
+      <div class="event-card boom" data-bg="📈">
+        <div class="ec-tag">POSITIVE EVENT</div>
+        <div class="ec-name">Boom</div>
+        <div class="ec-duration">3 GLOBAL TURNS</div>
+        <div class="ec-effects">Build costs −1 resource (min 1). Stocks +0.25 per turn. May occur after Depression Phase 3 ends.</div>
+      </div>
+      <div class="event-card crisis" data-bg="⚠️">
+        <div class="ec-tag">NEGATIVE EVENT</div>
+        <div class="ec-name">Crisis</div>
+        <div class="ec-duration">3 GLOBAL TURNS</div>
+        <div class="ec-effects">Rich players: pay 2 resources to bank OR lose all of one resource type. Stocks −0.20 per turn.</div>
+      </div>
+      <div class="event-card recession" data-bg="📉">
+        <div class="ec-tag">NEGATIVE EVENT</div>
+        <div class="ec-name">Recession</div>
+        <div class="ec-duration">4 GLOBAL TURNS</div>
+        <div class="ec-effects">Suspends: loans, savings, credit cards, shipping, rentals, and winning. Trading and building remain allowed.</div>
+      </div>
+      <div class="event-card depression" data-bg="💀">
+        <div class="ec-tag">SEVERE EVENT</div>
+        <div class="ec-name">Depression</div>
+        <div class="ec-duration">7 GLOBAL TURNS — 3 PHASES</div>
+        <div class="ec-effects">Three distinct phases. See below for full breakdown.</div>
+      </div>
+    </div>
+
+    <h2>The Depression — Three Phases</h2>
+    <p>A Depression is the most severe economic event in the game. It runs for 7 global turns divided into three distinct phases, each with different rules.</p>
+
+    <div class="dep-phases">
+      <div class="dep-phase">
+        <div class="dp-label">PHASE 1</div>
+        <div class="dp-title">Immediate Shock</div>
+        <div class="dp-turns">TURNS 1–2</div>
+        <div class="dp-effects">
+          • All players lose 50% hand resources (round up)<br>
+          • All stocks immediately −50%<br>
+          • All loans become immediately due<br>
+          • Shipping and rentals frozen
+        </div>
+      </div>
+      <div class="dep-phase">
+        <div class="dp-label">PHASE 2</div>
+        <div class="dp-title">Market Stagnation</div>
+        <div class="dp-turns">TURNS 3–5</div>
+        <div class="dp-effects">
+          • No new loans allowed<br>
+          • No savings usage<br>
+          • No stock purchases<br>
+          • Trading between players allowed<br>
+          • Building allowed
+        </div>
+      </div>
+      <div class="dep-phase">
+        <div class="dp-label">PHASE 3</div>
+        <div class="dp-title">Recovery</div>
+        <div class="dp-turns">TURNS 6–7</div>
+        <div class="dp-effects">
+          • Savings access restored<br>
+          • Credit cards allowed<br>
+          • Shipping resumes<br>
+          • VP collection still blocked until Depression ends
+        </div>
+      </div>
+    </div>
+
+    <div class="callout success" data-icon="🌱">
+      <div class="callout-label">After the Depression</div>
+      <p>Once all 7 turns complete, victory becomes possible again. A <span class="tag-green">Boom</span> may automatically trigger after the Depression — rewarding players who survived with discounted building costs and rising stocks. Position yourself for the Boom during Phase 3.</p>
+    </div>
+
+    <h2>Bank Collapse → Recession or Depression?</h2>
+    <p>When a Bank Collapse occurs, the number of players selling stocks determines what follows:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Sellers During Collapse</th><th>Event Triggered</th></tr></thead>
+        <tbody>
+          <tr><td>0–1 sellers</td><td><span class="tag-red">Recession</span> — 4 turns</td></tr>
+          <tr><td>2+ sellers</td><td><span class="tag-red">Depression</span> — 7 turns</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>This creates a fascinating collective action problem: selling saves your stock value in the short term but triggers a deeper crisis for everyone. Not selling is a form of cooperation — even if nobody asked for your cooperation.</p>
+
+    <div class="ch-nav">
+      <button class="ch-nav-btn" onclick="prevChapter()">← Chapter 08</button>
+      <button class="ch-nav-btn" onclick="nextChapter()">Chapter 10: The Bank Collapse →</button>
+    </div>
+  </div>
+
+  <!-- ═══ CH 10 — BANK COLLAPSE ═══ -->
+  <div id="ch-ch10" class="chapter">
+    <div class="ch-number">10</div>
+    <div class="ch-eyebrow">Events</div>
+    <h1 class="ch-title">The Bank<br><em>Collapse</em></h1>
+    <p class="ch-subtitle">The most chaotic single event in the game. And someone has to hit the floor.</p>
+    <div class="ch-divider"></div>
+
+    <p>The Bank Collapse is the nuclear option of Settlers: Capitalism. It fires when a player rolls the <strong>exact same dice total as the previous turn</strong>. The software tracks previous rolls and triggers the collapse automatically.</p>
+
+    <h2>Trigger</h2>
+    <div class="callout danger" data-icon="🎲">
+      <div class="callout-label">Trigger Condition</div>
+      <p>Roll the <strong>same total</strong> as the previous turn's roll. Example: if the last roll was 8 (5+3), and you roll 8 (4+4) this turn, the Bank Collapse fires. The probability of this happening on any given turn is approximately 1 in 6.</p>
+    </div>
+
+    <h2>Immediate Effects</h2>
+    <div class="steps">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Lose 50% Hand Resources</div>
+          <div class="step-desc">Every player loses half their hand resources, rounded up. Richer players (those with more in hand) lose more in absolute terms. Savings are wiped completely — see Step 3.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Stocks Drop 50%</div>
+          <div class="step-desc">All stock prices immediately halve. If you hold shares, their value is cut in half instantly. This is the fastest way to crater a portfolio in the game.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">All Loans Immediately Due</div>
+          <div class="step-desc">Every outstanding loan — regardless of when it was taken — becomes immediately due. If you can't pay, you're instantly overdue, with all associated penalties and blocks.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Savings Wiped</div>
+          <div class="step-desc">All banked (saved) resources are completely erased. Every player's savings account goes to zero. Years of careful saving, gone in one roll.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title">Shipping &amp; Rentals Canceled</div>
+          <div class="step-desc">All in-transit shipping orders are canceled with no refund. All active rental agreements are suspended.</div>
+        </div>
+      </div>
+    </div>
+
+    <h2>What Follows</h2>
+    <p>After the Bank Collapse effects resolve, the game tracks how many players sell stocks in response:</p>
+    <ul>
+      <li><strong>0–1 sellers:</strong> <span class="tag-red">Recession</span> begins (4 global turns)</li>
+      <li><strong>2+ sellers:</strong> <span class="tag-red">Depression</span> begins (7 global turns, 3 phases)</li>
+    </ul>
+
+    <h2>The Ritual</h2>
+    <p>This is non-negotiable. When a Bank Collapse fires, the designated <strong>Bank Manager</strong> must perform the following ritual. The honor system is the only enforcement mechanism. But the honor system is real.</p>
+
+    <div class="ritual-box">
+      <div class="ritual-title">⚠ BANK COLLAPSE ⚠</div>
+      <div class="ritual-sub">The financial system has imploded. The Bank Manager must now:</div>
+      <div class="ritual-steps">
+        <div class="ritual-step">🫳 Fall onto the floor. Physically. On the ground. Now.</div>
+        <div class="ritual-step">😭 Cry dramatically. Wailing encouraged. Tears optional.</div>
+        <div class="ritual-step">📢 Lament the downfall of the entire financial system.</div>
+        <div class="ritual-step">⚠️ Failure to perform = game ends with NO WINNER</div>
+      </div>
+    </div>
+
+    <div class="callout tip" data-icon="🧠">
+      <div class="callout-label">Strategic Note</div>
+      <p>You can partially hedge against a Bank Collapse by keeping minimal savings (so there's less to wipe), keeping loans repaid (so there's nothing to become immediately due), and holding some resources in hand rather than stocks (though hand resources are also halved). There's no perfect hedge — only degrees of suffering.</p>
+    </div>
+
+    <div class="ch-nav">
+      <button class="ch-nav-btn" onclick="prevChapter()">← Chapter 09</button>
+      <button class="ch-nav-btn" onclick="nextChapter()">Chapter 11: Quick Reference →</button>
+    </div>
+  </div>
+
+  <!-- ═══ CH 11 — QUICK REFERENCE ═══ -->
+  <div id="ch-ch11" class="chapter">
+    <div class="ch-number">11</div>
+    <div class="ch-eyebrow">Reference</div>
+    <h1 class="ch-title">Quick<br><em>Reference</em></h1>
+    <p class="ch-subtitle">Everything on one page. Bookmark this chapter.</p>
+    <div class="ch-divider"></div>
+
+    <h2>Build Costs</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Item</th><th>Cost</th><th>VP</th></tr></thead>
+        <tbody>
+          <tr><td>🛣️ Road</td><td>1 Wood + 1 Brick</td><td>0</td></tr>
+          <tr><td>🏠 Settlement</td><td>1 Wood + 1 Brick + 1 Wool + 1 Grain</td><td class="gold">1</td></tr>
+          <tr><td>🏙️ City</td><td>3 Ore + 2 Grain</td><td class="gold">2</td></tr>
+          <tr><td>🃏 Dev Card</td><td>1 Ore + 1 Wool + 1 Grain</td><td>varies</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Loans at a Glance</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>Standard Loan</th><th>Credit Loan</th></tr></thead>
+        <tbody>
+          <tr><td>Interest</td><td class="gold">20%</td><td class="gold">10%</td></tr>
+          <tr><td>Due</td><td>5 turns</td><td>2 turns</td></tr>
+          <tr><td>Late penalty</td><td class="red">+25%/turn</td><td class="red">+20%/turn</td></tr>
+          <tr><td>Post-repayment wait</td><td class="red">3 turns</td><td class="red">3 turns</td></tr>
+          <tr><td>History penalty</td><td class="red">+5% per prior late</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Events Summary</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Event</th><th>Duration</th><th>Key Effects</th></tr></thead>
+        <tbody>
+          <tr><td class="green">Boom</td><td>3 turns</td><td>Build −1, Stocks +0.25/turn</td></tr>
+          <tr><td class="gold">Crisis</td><td>3 turns</td><td>Rich pay 2 or lose type, Stocks −0.20</td></tr>
+          <tr><td class="red">Recession</td><td>4 turns</td><td>Suspends loans, savings, credit, shipping, rentals, winning</td></tr>
+          <tr><td class="red">Depression</td><td>7 turns</td><td>Phase 1: −50% hand/stocks, loans due. Phase 2: No loans/savings/stocks. Phase 3: Slow recovery.</td></tr>
+          <tr><td><strong>Bank Collapse</strong></td><td>Instant</td><td>−50% hand, stocks −50%, loans due, savings wiped, shipping canceled</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Tax Reference</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Rank</th><th>Rate</th><th>Frequency</th></tr></thead>
+        <tbody>
+          <tr><td class="gold">Rich (top 2)</td><td class="red">2 resources per property unit</td><td>Every 5 global turns</td></tr>
+          <tr><td>Middle</td><td>1 resource per property unit</td><td>Every 5 global turns</td></tr>
+          <tr><td>Poor (lowest)</td><td class="green">Exempt</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Shipping Fees</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Order Size</th><th>Standard (3 turns)</th><th>Expedited (next turn)</th></tr></thead>
+        <tbody>
+          <tr><td>1–2 units</td><td>+1</td><td>+2</td></tr>
+          <tr><td>3–6 units</td><td>+3</td><td>+6</td></tr>
+          <tr><td>7+ units</td><td>+4</td><td>+8</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Dice Boosts &amp; Hurts</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Resource</th><th class="green" style="color:#27ae60;">Boosts</th><th class="red" style="color:#c0392b;">Hurts</th></tr></thead>
+        <tbody>
+          <tr><td>🐑 Wool</td><td class="green">5, 10</td><td class="red">2, 3</td></tr>
+          <tr><td>🪵 Wood</td><td class="green">3, 11</td><td class="red">6</td></tr>
+          <tr><td>🧱 Brick</td><td class="green">4, 9</td><td class="red">8</td></tr>
+          <tr><td>⛏️ Ore</td><td class="green">9, 12</td><td class="red">5, 10</td></tr>
+          <tr><td>🌾 Grain</td><td class="green">3, 4</td><td class="red">6, 8, 9</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Win Checklist</h2>
+    <div class="callout success" data-icon="✅">
+      <div class="callout-label">Before Declaring Victory</div>
+      <p>
+        ✅ 10+ Victory Points<br>
+        ✅ No overdue loans (standard or credit)<br>
+        ✅ Not within 3 turns of an overdue repayment<br>
+        ✅ No active Recession or Depression<br>
+        ✅ It is your turn
+      </p>
+    </div>
+
+    <h2>Card Costs</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Card</th><th>Open Cost</th><th>Maintenance</th><th>Perk</th></tr></thead>
+        <tbody>
+          <tr><td>Debit Card</td><td>2 resources</td><td>1 every 3 turns</td><td>1 resource build discount + direct savings access</td></tr>
+          <tr><td>Credit Card</td><td>3 resources</td><td>1 every 5 turns</td><td>Auto-cover 1 missing build resource (creates Credit Loan)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout tip" data-icon="🚀">
+      <div class="callout-label">You're Ready to Play</div>
+      <p>The software handles all the math. Trust it, play smart, and remember: <strong>the economy is not your friend</strong> — but you can learn to work with it. Good luck. You'll need it.</p>
+    </div>
+
+    <div style="text-align:center;margin-top:60px;padding:40px;background:var(--ink);border:1px solid rgba(200,150,10,0.2);">
+      <div style="font-family:'Playfair Display',serif;font-size:48px;color:var(--gold);margin-bottom:12px;">⚜</div>
+      <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--parchment);margin-bottom:8px;">Ready to play?</div>
+      <div style="font-size:15px;color:rgba(242,234,214,0.5);margin-bottom:24px;">The software is waiting. Your savings are not safe.</div>
+      <a href="settlersb3.html" style="background:var(--gold);color:var(--ink);font-family:'Bebas Neue',sans-serif;letter-spacing:4px;font-size:16px;padding:14px 40px;text-decoration:none;display:inline-block;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);transition:all 0.2s;" onmouseover="this.style.background='#e8b020'" onmouseout="this.style.background='#c8960a'">▶ LAUNCH SETTLERS: CAPITALISM</a>
+    </div>
+
+    <div class="ch-nav">
+      <button class="ch-nav-btn" onclick="prevChapter()">← Chapter 10</button>
+      <button class="ch-nav-btn" onclick="goTo('cover')">↑ Back to Contents</button>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<script>
+const CHAPTERS = ['cover','ch0','ch1','ch2','ch3','ch4','ch5','ch6','ch7','ch8','ch9','ch10','ch11'];
+const CHAPTER_NAMES = [
+  'Cover','Introduction','Base Catan','Winning','Turn Structure','Build Costs',
+  'Rankings & Tax','Banking & Loans','Stock Market','Shipping & Rentals',
+  'Economic Events','The Bank Collapse','Quick Reference'
+];
+let current = 0;
+const readSet = new Set([0]);
+
+function goTo(id) {
+  const idx = CHAPTERS.indexOf(id);
+  if (idx === -1) return;
+
+  // Hide all
+  document.querySelectorAll('.chapter').forEach(c => c.classList.remove('active'));
+  // Show target
+  const el = document.getElementById(id === 'cover' ? 'ch-cover' : 'ch-' + id);
+  if (el) el.classList.add('active');
+
+  // Update sidebar active
+  document.querySelectorAll('.nav-item').forEach((item, i) => {
+    item.classList.remove('active');
+    if (i === idx) item.classList.add('active');
+  });
+
+  // Update topbar
+  document.getElementById('topbarCurrent').textContent = CHAPTER_NAMES[idx];
+
+  // Mark as read
+  readSet.add(idx);
+  updateProgress();
+
+  // Mark nav items as read
+  document.querySelectorAll('.nav-item').forEach((item, i) => {
+    if (readSet.has(i)) item.classList.add('read');
+  });
+
+  current = idx;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Close mobile sidebar
+  if (window.innerWidth <= 800) {
+    document.getElementById('sidebar').classList.remove('open');
+  }
+}
+
+function nextChapter() {
+  if (current < CHAPTERS.length - 1) goTo(CHAPTERS[current + 1]);
+}
+
+function prevChapter() {
+  if (current > 0) goTo(CHAPTERS[current - 1]);
+}
+
+function updateProgress() {
+  const pct = Math.round((readSet.size / CHAPTERS.length) * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressText').textContent = readSet.size + ' / ' + CHAPTERS.length;
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// LOAN CALCULATOR
+function calcLoan() {
+  const amt = parseFloat(document.getElementById('lAmt').value) || 0;
+  const type = document.getElementById('lType').value;
+  const late = parseInt(document.getElementById('lLate').value) || 0;
+  const hist = parseInt(document.getElementById('lHistory').value) || 0;
+
+  const baseRate = type === 'credit' ? 0.10 : (0.20 + hist * 0.05);
+  const lateRate = type === 'credit' ? 0.20 : 0.25;
+
+  let total = amt * (1 + baseRate);
+  if (late > 0) total *= Math.pow(1 + lateRate, late);
+  total = Math.ceil(total);
+
+  const el = document.getElementById('calcResult');
+  const amtEl = document.getElementById('crAmount');
+  const noteEl = document.getElementById('crNote');
+
+  amtEl.textContent = total + ' resources';
+
+  el.className = 'calc-result';
+  if (late === 0) {
+    el.classList.add('ok');
+    noteEl.textContent = 'Paid on time. ' + Math.round(baseRate * 100) + '% interest applied.';
+  } else if (late <= 2) {
+    el.classList.add('warn');
+    noteEl.textContent = '⚠ Overdue × ' + late + ' turns. Winning, trading, and building are blocked.';
+  } else {
+    el.classList.add('danger');
+    noteEl.textContent = '💀 ' + late + ' turns overdue. This is catastrophic. You should have planned better.';
+  }
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextChapter();
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prevChapter();
+});
+
+// Init
+updateProgress();
+calcLoan();
+</script>
+</body>
+</html>
