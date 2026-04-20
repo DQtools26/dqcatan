@@ -1094,8 +1094,10 @@ hr.div{border:none;border-top:1px solid var(--border);margin:.75rem 0;}
       </div>
       <button class="btn btn-gold btn-sm" onclick="triggerEvent()">Trigger Event</button>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem">
-        <button class="btn btn-outline btn-sm" onclick="doDownturn('recession',4)">Recession (4T)</button>
-        <button class="btn btn-outline btn-sm" onclick="doDownturn('depression',7)">Depression (7T)</button>
+        <button class="btn btn-outline btn-sm" onclick="bmTriggerCollapse('recession')" data-tip="Runs full 4-phase collapse sequence, then forces Recession (4T)">Force Recession</button>
+        <button class="btn btn-outline btn-sm" onclick="bmTriggerCollapse('depression')" data-tip="Runs full 4-phase collapse sequence, then forces Depression (7T)">Force Depression</button>
+        <button class="btn btn-outline btn-sm" onclick="doDownturn('recession',4)" data-tip="Skips phases, sets Recession immediately (no collapse ritual)">Instant Recession</button>
+        <button class="btn btn-outline btn-sm" onclick="doDownturn('depression',7)" data-tip="Skips phases, sets Depression immediately (no collapse ritual)">Instant Depression</button>
         <button class="btn btn-red btn-sm" onclick="endDownturn()">End Downturn</button>
       </div>
       <hr class="div">
@@ -2509,7 +2511,7 @@ function collapsePhase2PayPartial(pid,amt){
 // ── PHASE 3: Downturn determination ──
 function collapsePhase3(){
   const sold=COLLAPSE_STATE.propertiesSold;
-  const dt=sold>=2?'depression':'recession';
+  const dt=COLLAPSE_STATE._forcedDownturn||(sold>=2?'depression':'recession');
   const turns=dt==='depression'?7:4;
   G.downturn={type:dt,turnsRemaining:turns};
 
@@ -3892,24 +3894,42 @@ function confirmEndTurn(){
 
   G.creditCards.forEach(cc=>{
     if(G.turnNum>=cc.mainT){
-      const p=getP(cc.playerId);if(!p)return;let paid=false;
-      for(const r of RES){if((p.resources[r]||0)>=1){p.resources[r]--;paid=true;break;}}
-      cc.mainT+=5;
-      if(!paid)notify('CC Maintenance',`${p.name} couldn't pay maintenance!`,'error');
-      else log(`${p.name} paid CC maintenance`);
+      const p=getP(cc.playerId);if(!p)return;
+      cc.mainT=G.turnNum+5; // advance due date immediately to prevent re-trigger
+      openPayTerminal({
+        pid:p.id,
+        title:`💳 CC Maintenance — ${p.name}`,
+        items:[{res:null,amt:1,label:'CC maintenance fee (any resource)'}],
+        allowSavings:true,allowCC:false,allowStdLoan:false,
+        onConfirm:()=>{
+          log(`${p.name} paid CC maintenance`);
+          notify('CC Maintenance Paid',p.name,'success');
+        },
+        onCancel:()=>{
+          notify('CC Maintenance Skipped',`${p.name} — Banker should enforce.`,'error');
+        },
+      });
     }
   });
 
-  // Debit card maintenance — every 3 turns
+  // Debit card maintenance — every 3 turns, via payment terminal
   G.players.forEach(p=>{
     if(!p.debitCard||p.debitMainT===null)return;
     if(G.turnNum>=p.debitMainT){
-      // Prompt via payment terminal would be ideal but maintenance is auto-deducted
-      let paid=false;
-      for(const r of RES){if((p.resources[r]||0)>=1){p.resources[r]--;paid=true;break;}}
-      p.debitMainT=G.turnNum+3;
-      if(!paid)notify('Debit Maintenance',`${p.name} couldn't pay 1 resource debit fee!`,'error');
-      else log(`${p.name} paid debit card maintenance (1 resource)`);
+      p.debitMainT=G.turnNum+3; // advance now to prevent re-trigger
+      openPayTerminal({
+        pid:p.id,
+        title:`🏦 Debit Maintenance — ${p.name}`,
+        items:[{res:null,amt:1,label:'Debit card maintenance fee (any resource)'}],
+        allowSavings:true,allowCC:false,allowStdLoan:false,
+        onConfirm:()=>{
+          log(`${p.name} paid debit card maintenance`);
+          notify('Debit Maintenance Paid',p.name,'success');
+        },
+        onCancel:()=>{
+          notify('Debit Maintenance Skipped',`${p.name} — Banker should enforce.`,'error');
+        },
+      });
     }
   });
 
@@ -4479,6 +4499,18 @@ function bmForceCollapse(){
   closeModal('banker-modal');
   log('[BANKER] Bank Collapse forced.');
   playSound('collapse');
+  confirmCollapse();
+}
+
+function bmTriggerCollapse(forcedDownturn){
+  // Runs full 4-phase collapse but overrides the downturn type at the end
+  const label=forcedDownturn==='depression'?'Depression (7T)':'Recession (4T)';
+  if(!confirm('Trigger full Bank Collapse with forced '+label+'? Runs all 4 phases.'))return;
+  closeModal('banker-modal');
+  log('[BANKER] Forced collapse with '+label);
+  playSound('collapse');
+  // Set flag so collapsePhase3 uses forced type
+  COLLAPSE_STATE._forcedDownturn=forcedDownturn;
   confirmCollapse();
 }
 
@@ -5942,6 +5974,7 @@ document.getElementById('new-player-name').addEventListener('keydown',e=>{if(e.k
 
 // ── FULL-PAGE RULEBOOK ──
 const RL_SECTIONS=[
+  {id:'quickref',label:'⚡ Quick Ref'},
   {id:'overview',label:'Overview'},
   {id:'turn',label:'Turn Order'},
   {id:'banking',label:'Banking'},
@@ -5952,155 +5985,305 @@ const RL_SECTIONS=[
   {id:'rentals',label:'Rentals'},
   {id:'events',label:'Events'},
   {id:'taxes',label:'Taxes'},
-  {id:'winning',label:'Winning'},
+  {id:'winning',label:'Winning & Gamble'},
   {id:'disputes',label:'⚖ Disputes'},
 ];
 
 const RL_CONTENT={
-  overview:`<h2>Goal</h2><p>Be the first to reach <strong>10 Victory Points</strong> on your turn, with no unpaid debt and no active downturn.</p>
-<h2>Build Costs</h2>
-<table class="rl-table"><thead><tr><th>Structure</th><th>Cost</th><th>VP</th></tr></thead><tbody>
-<tr><td>🛣️ Road</td><td>1 Wood + 1 Brick</td><td>—</td></tr>
-<tr><td>🏠 Settlement</td><td>1 Wood + 1 Brick + 1 Wool + 1 Grain</td><td>1 VP</td></tr>
-<tr><td>🏙️ City</td><td>3 Ore + 2 Grain (upgrades settlement)</td><td>2 VP</td></tr>
-<tr><td>🃏 Dev Card</td><td>1 Ore + 1 Wool + 1 Grain</td><td>varies</td></tr>
+  quickref:`<h2>Quick Reference</h2>
+<p style="color:var(--text3);font-size:.82rem;margin-bottom:.75rem">Everything you need to know at a glance. Click any section tab for the full rules.</p>
+<table class="rl-table"><thead><tr><th>Build Costs</th><th></th></tr></thead><tbody>
+<tr><td>🛣️ Road</td><td>1 Wood + 1 Brick</td></tr>
+<tr><td>🏠 Settlement</td><td>1 Wood + 1 Brick + 1 Wool + 1 Grain</td></tr>
+<tr><td>🏙️ City</td><td>3 Ore + 2 Grain (upgrades settlement)</td></tr>
+<tr><td>🃏 Dev Card</td><td>1 Ore + 1 Wool + 1 Grain</td></tr>
 </tbody></table>
-<h2>Rankings</h2><p>Based on <strong>total assets</strong> — Savings + Stock value + Property value. Hand resources do NOT count.</p>
-<ul><li><strong>Rich</strong> = top 2 players by assets</li><li><strong>Poor</strong> = lowest player</li><li><strong>Middle</strong> = everyone else</li></ul>`,
-
-  turn:`<h2>Every Turn — 5 Steps</h2>
-<div class="rl-step"><div class="rl-step-num">1</div><div><strong>Roll Dice.</strong> Resources are produced. Rolling the exact same total as last turn triggers <strong>Bank Collapse</strong>.</div></div>
-<div class="rl-step"><div class="rl-step-num">2</div><div><strong>Resources.</strong> Update each player's hand. Banked resources are locked and can't be used until withdrawn. 7 = robber (hand only, savings are safe).</div></div>
-<div class="rl-step"><div class="rl-step-num">3</div><div><strong>Actions</strong> (all optional). Build, Trade, Bank, Ship, Rent, Gamble, Stocks — in any order and as many times as you like.</div></div>
-<div class="rl-step"><div class="rl-step-num">4</div><div><strong>Events.</strong> The software checks for overdue loans, upcoming payments, and active events. Resolve anything flagged.</div></div>
-<div class="rl-step"><div class="rl-step-num">5</div><div><strong>Summary.</strong> Review VP and resources. 10+ VP + no restrictions = declare victory. Otherwise pass the device.</div></div>`,
-
-  banking:`<h2>Savings Account</h2>
-<p><strong>Opening cost:</strong> 2 resources (hand only, paid once each time you open). Safe from the robber. Resources are locked until withdrawn.</p>
-<p><strong>Growth:</strong> Every 3 of <em>your own</em> turns, you earn +1 resource per 3 stored (rounded down). Example: 7 stored → +2 added.</p>
-<p><strong>7-roll bonus:</strong> When any player rolls a 7, you get +1 for each <em>different</em> resource type in savings.</p>
-<h2>Debit Card</h2>
-<p><strong>Cost:</strong> 2 resources. Maintenance: 1 resource every 3 turns (auto-deducted).</p>
-<p>Unlocks instant withdrawals from savings at any time during your turn.</p>
-<h2>Withdrawals</h2>
-<table class="rl-table"><thead><tr><th>Type</th><th>How</th><th>Cost</th></tr></thead><tbody>
-<tr><td>Debit</td><td>Any amount to hand</td><td>Debit card required</td></tr>
-<tr><td>Full</td><td>Everything at once</td><td>1 of each type stored + 3-turn reopen wait</td></tr>
-</tbody></table>`,
-
-  loans:`<h2>Standard Loan</h2>
-<table class="rl-table"><thead><tr><th>Detail</th><th>Value</th></tr></thead><tbody>
-<tr><td>Interest</td><td>20% (rounded up). +5% per past late payment.</td></tr>
-<tr><td>Due</td><td>5 turns from when taken</td></tr>
-<tr><td>Repayment</td><td>Principal in same resource + interest in any resource</td></tr>
+<table class="rl-table"><thead><tr><th>Banking Costs</th><th></th></tr></thead><tbody>
+<tr><td>Savings Account</td><td>2 resources to open (hand only)</td></tr>
+<tr><td>Debit Card</td><td>2 resources to open + 1 every 3 turns maintenance</td></tr>
+<tr><td>Credit Card</td><td>3 resources to open + 1 every 5 turns maintenance</td></tr>
 </tbody></table>
-<h2>Overdue Loans</h2>
-<div class="rl-warn">Loans come due at the <strong>start of your own turn</strong>. A modal will show what's owed — you can repay or dismiss. Dismissing marks them overdue immediately.<br><br>
-<strong>While overdue:</strong> Cannot build, trade, buy stocks, take new loans, or win.<br>
-<strong>After repaying overdue:</strong> 3-turn wait before you can win again.<br>
-<strong>Overdue penalty:</strong> +25% of principal added to what you owe.</div>`,
-
-  cc:`<h2>Credit Card</h2>
-<table class="rl-table"><thead><tr><th>Detail</th><th>Value</th></tr></thead><tbody>
-<tr><td>Opening cost</td><td>3 resources (any type)</td></tr>
-<tr><td>Maintenance</td><td>1 resource every 5 turns</td></tr>
-<tr><td>Interest</td><td>10%. +10% per past late CC payment.</td></tr>
-<tr><td>Due</td><td>2 turns (fast — plan ahead)</td></tr>
-<tr><td>Late penalty</td><td>+20% of amount owed</td></tr>
+<table class="rl-table"><thead><tr><th>Loan Rates</th><th></th></tr></thead><tbody>
+<tr><td>Standard Loan</td><td>20% interest, due 5 turns. +5% per past late payment.</td></tr>
+<tr><td>CC Loan</td><td>10% interest, due 2 turns. +10% per past late CC payment.</td></tr>
+<tr><td>Overdue penalty</td><td>Standard +25% | CC +20%. Blocks building, trading, winning.</td></tr>
+<tr><td>After repay</td><td>3-turn wait before you can win again.</td></tr>
 </tbody></table>
-<h2>Building Perk</h2>
-<p>When you build, if you have a CC with no overdue CC loans, the software automatically shows a picker letting you <strong>skip 1 resource cost</strong> of your choice. This creates a Credit Loan for that resource.</p>`,
-
-  stocks:`<h2>Buying &amp; Selling</h2>
-<p><strong>Buy:</strong> Pay resources totaling price × shares (rounded up, any mix).<br>
-<strong>Sell:</strong> Receive price × shares of that specific resource (rounded down).<br>
-<strong>Blocked</strong> if you have any overdue loan.</p>
-<h2>What Controls Prices</h2>
-<p>Prices update <strong>after resources are distributed</strong> each turn — so they reflect the actual market.</p>
-<table class="rl-table"><thead><tr><th>Factor</th><th>Effect</th></tr></thead><tbody>
-<tr><td>Market Scarcity</td><td>Low avg hand → +0.40 | Medium → +0.15 | High → −0.10 | Very high → −0.35</td></tr>
-<tr><td>Savings Hoarding</td><td>+0.05 per banked unit (max +0.30)</td></tr>
-<tr><td>Dice Affinity</td><td>Each resource has rolls that boost or hurt its price</td></tr>
-<tr><td>Events</td><td>Boom +0.25 | Crisis −0.20 | Recession −0.20 | Depression −0.40</td></tr>
-</tbody></table>`,
-
-  shipping:`<h2>Global Trade</h2>
-<p>Order any resource type for delivery. Pay a fee in any resource <em>except</em> the one you're ordering.</p>
-<table class="rl-table"><thead><tr><th>Type</th><th>Delivery</th><th>Fee</th></tr></thead><tbody>
-<tr><td>Standard</td><td>3 turns</td><td>3 resources</td></tr>
-<tr><td>Expedited</td><td>Next turn</td><td>Double fee</td></tr>
+<table class="rl-table"><thead><tr><th>Property Sales to Bank</th><th></th></tr></thead><tbody>
+<tr><td>🏠 Settlement</td><td>+2 Grain</td></tr>
+<tr><td>🏙️ City</td><td>+3 Grain (reverts to settlement)</td></tr>
+<tr><td>🛣️ Road</td><td>+1 Grain</td></tr>
 </tbody></table>
-<div class="rl-warn">Shipping is <strong>fully suspended during Recession and Depression</strong>. Orders in transit are cancelled with no refund.</div>`,
-
-  rentals:`<h2>Rental Agreements</h2>
-<p>Any two players can create a rental. The landlord collects resources periodically; the tenant pays from hand.</p>
-<table class="rl-table"><thead><tr><th>Property</th><th>Rent</th><th>Frequency</th></tr></thead><tbody>
-<tr><td>🏠 Settlement</td><td>1 Wool + 1 Brick</td><td>Every 2 turns</td></tr>
-<tr><td>🏙️ City</td><td>1 Wood + 1 Wool + 1 Brick</td><td>Every 2 turns</td></tr>
-<tr><td>🛣️ Road</td><td>2 Wood</td><td>Every 3 turns</td></tr>
+<table class="rl-table"><thead><tr><th>Shipping</th><th></th></tr></thead><tbody>
+<tr><td>Standard</td><td>Fee: 3 resources (not the ordered type). Arrives in 3 turns.</td></tr>
+<tr><td>Expedited</td><td>Fee: 6 resources. Arrives next turn.</td></tr>
 </tbody></table>
-<p>Either player can end the agreement on their turn — but rent already due must be settled first. The landlord keeps the property for VP purposes.</p>
-<div class="rl-warn">Rentals are <strong>suspended during Recession and Depression</strong>.</div>`,
-
-  events:`<h2>Bank Collapse</h2>
-<p><strong>Trigger:</strong> Rolling the same total as the previous roll.</p>
-<p><strong>Effects (4 phases):</strong></p>
-<ul>
-<li>Phase 1 — Each player discards half their hand (rounded up, their choice).</li>
-<li>Phase 2 — All stocks drop 50%. All loans become immediately due. All savings are wiped. Shipping and rentals cancelled.</li>
-<li>Phase 3 — Each player: sell 1 property OR pay 3 resources. 2+ sell → Depression (7 turns). 0–1 sell → Recession (4 turns).</li>
-<li>Phase 4 — The Bank Manager performs the ritual.</li>
-</ul>
-<div class="rl-warn" style="border-color:var(--red2)">The Bank Manager must physically fall to the floor, cry dramatically, and lament the collapse. Failure = <strong>game ends with no winner.</strong></div>
-<h2>Recession (4 global turns) &amp; Depression (7 global turns)</h2>
-<p>Cannot: take loans, use savings, use credit cards, ship, collect rent, or win. Building and trading are still allowed.</p>
-<h2>Boom (3 global turns)</h2>
-<p>Build costs −1 resource (you pick which). Stock prices +0.25/round.</p>
-<h2>Crisis (3 global turns)</h2>
-<p>Each turn, Rich players must: <strong>pay 2 resources to bank</strong> OR <strong>lose all of one resource type</strong>. Stocks −0.20/round.</p>`,
-
-  taxes:`<h2>Tax Collection</h2>
-<p>Triggered automatically every <strong>5 global rounds</strong>. Skipped during downturns.</p>
-<table class="rl-table"><thead><tr><th>Rank</th><th>Rate</th></tr></thead><tbody>
-<tr><td>🟡 Rich (top 2)</td><td>2 resources per property unit</td></tr>
+<table class="rl-table"><thead><tr><th>Rentals</th><th></th></tr></thead><tbody>
+<tr><td>🏠 Settlement</td><td>1 Wool + 1 Brick, every 2 turns</td></tr>
+<tr><td>🏙️ City</td><td>1 Wood + 1 Wool + 1 Brick, every 2 turns</td></tr>
+<tr><td>🛣️ Road</td><td>2 Wood, every 3 turns</td></tr>
+</tbody></table>
+<table class="rl-table"><thead><tr><th>Tax Rates (every 5 global rounds)</th><th></th></tr></thead><tbody>
+<tr><td>🟡 Rich (top 2 by assets)</td><td>2 resources per property unit</td></tr>
 <tr><td>⚪ Middle</td><td>1 resource per property unit</td></tr>
 <tr><td>🔴 Poor (lowest)</td><td>Exempt</td></tr>
 </tbody></table>
-<p>Settlement = 1 unit, City = 2 units, Roads = 0 units.</p>
-<h2>Tax Evasion</h2><p>Instead of paying, roll 1 die: <strong>1–3</strong> = caught, pay double. <strong>4–6</strong> = escaped, pay nothing. Once per tax cycle.</p>`,
-
-  winning:`<h2>Victory Conditions</h2>
-<p>Declare victory at the <strong>start of your turn</strong> if all of the following are true:</p>
-<ul>
-<li>✅ You have <strong>10 or more VP</strong></li>
-<li>✅ <strong>No overdue loans</strong> of any type</li>
-<li>✅ <strong>Not in a wait period</strong> (3-turn restriction after paying off an overdue loan)</li>
-<li>✅ <strong>No active downturn</strong> (Recession or Depression)</li>
-</ul>
-<h2>VP Sources</h2>
-<table class="rl-table"><thead><tr><th>Source</th><th>VP</th></tr></thead><tbody>
-<tr><td>🏠 Each Settlement</td><td>1 VP</td></tr>
-<tr><td>🏙️ Each City</td><td>2 VP</td></tr>
-<tr><td>🛣️ Longest Road (5+)</td><td>+2 VP</td></tr>
-<tr><td>⚔️ Largest Army (3+ knights)</td><td>+2 VP</td></tr>
-<tr><td>🃏 VP Dev Cards</td><td>+1 VP each</td></tr>
+<table class="rl-table"><thead><tr><th>Win Conditions</th><th></th></tr></thead><tbody>
+<tr><td>VP needed</td><td>10 VP on your own turn</td></tr>
+<tr><td>Blocked by</td><td>Any overdue loan, wait period, or active downturn</td></tr>
+</tbody></table>
+<table class="rl-table"><thead><tr><th>Gamble (pay 2 resources)</th><th></th></tr></thead><tbody>
+<tr><td style="color:var(--green2)">Roll 1</td><td>+1 random resource</td></tr>
+<tr><td style="color:var(--red2)">Roll 2</td><td>Pay 3 to bank</td></tr>
+<tr><td style="color:var(--green2)">Roll 3</td><td>+2 random resources</td></tr>
+<tr><td style="color:var(--red2)">Roll 4</td><td>Pay 4 to bank</td></tr>
+<tr><td style="color:var(--red2)">Roll 5</td><td>Sell 1 settlement or city</td></tr>
+<tr><td style="color:var(--red2)">Roll 6</td><td>All loans +10% interest permanently</td></tr>
+</tbody></table>`,
+  overview:`<h2>Goal</h2>
+<p>Be the first to reach <strong>10 Victory Points</strong> on your own turn, with no unpaid debt and no active economic downturn.</p>
+<h2>Victory Points</h2>
+<table class="rl-table"><thead><tr><th>Source</th><th>VP</th><th>Notes</th></tr></thead><tbody>
+<tr><td>🏠 Settlement</td><td>1 VP</td><td>Each settlement you own</td></tr>
+<tr><td>🏙️ City</td><td>2 VP</td><td>Upgrades a settlement (loses the 1 VP, gains 2)</td></tr>
+<tr><td>🛣️ Longest Road</td><td>+2 VP</td><td>5+ continuous roads, must be the longest in the game</td></tr>
+<tr><td>⚔️ Largest Army</td><td>+2 VP</td><td>3+ knights played, must be the most in the game</td></tr>
+<tr><td>🃏 VP Dev Card</td><td>+1 VP each</td><td>Revealed and counted when you claim victory</td></tr>
+</tbody></table>
+<h2>Build Costs</h2>
+<table class="rl-table"><thead><tr><th>Structure</th><th>Cost</th></tr></thead><tbody>
+<tr><td>🛣️ Road</td><td>1 Wood + 1 Brick</td></tr>
+<tr><td>🏠 Settlement</td><td>1 Wood + 1 Brick + 1 Wool + 1 Grain</td></tr>
+<tr><td>🏙️ City</td><td>3 Ore + 2 Grain (upgrades a settlement — requires owning one)</td></tr>
+<tr><td>🃏 Dev Card</td><td>1 Ore + 1 Wool + 1 Grain</td></tr>
+</tbody></table>
+<h2>Asset Rankings</h2>
+<p>Used for taxes and Crisis events. Rankings update every turn based on <strong>total assets = Savings + Stock portfolio value + Property value</strong>. Hand resources do NOT count.</p>
+<table class="rl-table"><thead><tr><th>Rank</th><th>Who</th><th>Property Value</th></tr></thead><tbody>
+<tr><td>🟡 Rich</td><td>Top 2 players by total assets</td><td>Settlement = 1 unit, City = 2 units, Road = 0 units</td></tr>
+<tr><td>⚪ Middle</td><td>Everyone else</td><td>—</td></tr>
+<tr><td>🔴 Poor</td><td>Lowest asset player</td><td>Exempt from taxes</td></tr>
 </tbody></table>`,
 
-  disputes:`<h2>Official Rulings</h2>
-<p style="color:var(--text3);font-size:.8rem">The software is the final authority. These cover common arguments.</p>
-` + [
-  ["I have 10 VP, I should win!", "Not if you have overdue loans, a wait period, or a downturn is active. All three conditions must be clear simultaneously."],
-  ["The 3-turn wait is unfair.", "Correct rule. Paying off an overdue loan does not restore win eligibility immediately. The wait is the penalty for being late."],
-  ["My savings should count as resources.", "Savings are locked. Cannot be used for building, trading, loans, or rent until withdrawn."],
-  ["The robber should steal my savings.", "Savings are protected. Only hand resources can be targeted by the robber."],
-  ["That was not a double roll.", "If the new roll matches the previous total exactly, Bank Collapse triggers. The navbar shows the last roll."],
-  ["The Bank Manager refuses the ritual.", "Game ends immediately with no winner. Not negotiable."],
-  ["Can I trade during a downturn?", "Yes. Player-to-player trading is allowed. Banking, loans, shipping, and rentals are suspended."],
-  ["Stock prices are rigged.", "Prices are driven by actual game state. The Stocks tab shows exactly why each price moved."],
-  ["Can I repay a loan early?", "Yes, any time during your turn. No early repayment penalty. Full interest still applies."],
-  ["Can I take a loan to pay off another?", "Yes, if neither is overdue. You cannot take a new loan while you have an overdue one."],
-  ["The rent rate changed.", "Rental rates are fixed by the rules. Once created, the rate is fixed for the agreement duration."],
+  turn:`<h2>Turn Structure — 5 Steps</h2>
+<div class="rl-step"><div class="rl-step-num">1</div><div><strong>Roll Dice.</strong> Both dice are rolled. All settlements and cities on hexes matching the number produce their resource. Rolling the exact same total as the previous turn immediately triggers <strong>Bank Collapse</strong>. The previous roll is always visible in the navbar.</div></div>
+<div class="rl-step"><div class="rl-step-num">2</div><div><strong>Resource Distribution.</strong> Use the software to add resources to each player who produces on this roll. Banked (savings) resources are locked — they are shown as "+B" next to hand totals and cannot be spent until withdrawn. A roll of 7 does NOT steal savings — only hand resources can be targeted by the robber. The 7-roll bonus for savings holders triggers automatically.</div></div>
+<div class="rl-step"><div class="rl-step-num">3</div><div><strong>Actions (all optional).</strong> In any order, any number of times: Build, Trade, Bank, Shipping, Rentals, Gamble, Stocks. You are never required to do any of these. Stock prices update after you click Apply on the resources step.</div></div>
+<div class="rl-step"><div class="rl-step-num">4</div><div><strong>Events.</strong> The software checks for overdue loans, upcoming payments, and active events. At the start of your turn, if you have any loans due, a modal appears — you can repay them immediately or dismiss (which marks them overdue).</div></div>
+<div class="rl-step"><div class="rl-step-num">5</div><div><strong>Summary.</strong> Review your VP, resources, and loans. If the software shows WIN! on your player card and you have 10+ VP, declare victory. Otherwise press End Turn to pass the device.</div></div>`,
+
+  banking:`<h2>Savings Account</h2>
+<p><strong>Opening cost:</strong> 2 resources from hand (any type). Paid each time you open the account — including after a full withdrawal.</p>
+<p><strong>What it does:</strong> Locks resources away from the robber and away from your spendable hand. Resources in savings cannot be used for building, trading, paying loans, or rent until withdrawn.</p>
+<h2>Savings Growth</h2>
+<p>Every <strong>3 of your own turns</strong> (not global turns — your personal turn counter), you earn automatic growth:</p>
+<p style="padding:.5rem .75rem;background:var(--bg3);border-radius:6px;border-left:3px solid var(--gold)">Growth = ⌊total stored ÷ 3⌋ resources, added to your first deposit type.<br>Example: 7 stored → +2 resources. 11 stored → +3 resources.</p>
+<p style="margin-top:.5rem"><strong>7-roll bonus:</strong> When any player rolls a 7, you get +1 resource for each <em>different</em> resource type stored. Example: you have Wool + Ore + Grain saved → +3 resources added to savings.</p>
+<h2>Debit Card</h2>
+<table class="rl-table"><thead><tr><th>Detail</th><th>Value</th></tr></thead><tbody>
+<tr><td>Opening cost</td><td>2 resources (issued by Banker in software)</td></tr>
+<tr><td>Maintenance</td><td>1 resource every 3 turns (auto-deducted from hand)</td></tr>
+<tr><td>Benefit</td><td>Unlocks instant debit withdrawals any time during your turn</td></tr>
+</tbody></table>
+<h2>Withdrawals</h2>
+<table class="rl-table"><thead><tr><th>Type</th><th>Requirements</th><th>Cost</th><th>Notes</th></tr></thead><tbody>
+<tr><td>Debit Withdrawal</td><td>Active debit card</td><td>None (beyond card maintenance)</td><td>Move any amount from savings to hand instantly</td></tr>
+<tr><td>Full Withdrawal</td><td>No reopen wait active</td><td>1 of each resource type currently stored (from hand)</td><td>Takes everything. 3-turn reopen wait starts. Opens savings. Pays 2-resource fee again to reopen.</td></tr>
+</tbody></table>
+<p style="font-size:.82rem;color:var(--text3)">Example: You have 4 Wool, 2 Ore, 3 Grain saved. Full withdrawal costs 1 Wool + 1 Ore + 1 Grain from hand, and you receive all 9 saved resources plus the 3 you paid.</p>`,
+
+  loans:`<h2>Standard Loan</h2>
+<table class="rl-table"><thead><tr><th>Detail</th><th>Value</th></tr></thead><tbody>
+<tr><td>Amount</td><td>Any amount of a single resource type</td></tr>
+<tr><td>Interest rate</td><td>20% base + 5% per past late payment (cumulative, permanent)</td></tr>
+<tr><td>Interest amount</td><td>⌈principal × rate⌉ — rounded up</td></tr>
+<tr><td>Due</td><td>5 turns from when taken</td></tr>
+<tr><td>Repayment</td><td>Principal must be paid in the same resource borrowed. Interest paid in any resource.</td></tr>
+</tbody></table>
+<h2>Credit Card Loan</h2>
+<table class="rl-table"><thead><tr><th>Detail</th><th>Value</th></tr></thead><tbody>
+<tr><td>Interest rate</td><td>10% base + 10% per past late CC payment (cumulative, permanent)</td></tr>
+<tr><td>Due</td><td>2 turns from when taken (fast — plan ahead)</td></tr>
+<tr><td>Repayment</td><td>Principal in same resource + interest in any resource</td></tr>
+</tbody></table>
+<h2>Overdue Process</h2>
+<div class="rl-warn">
+<strong>Loans come due at the start of your own turn.</strong> A modal appears listing all due loans. You can repay immediately or dismiss — dismissing marks them overdue.<br><br>
+<strong>Overdue penalties:</strong> Standard loan +25% of principal | CC loan +20% of principal<br>
+<strong>While overdue you cannot:</strong> build, trade, buy stocks, take new loans, or win.<br>
+<strong>After repaying overdue:</strong> 3-turn wait before you can win again.<br>
+<strong>Past-due rate penalty:</strong> Your interest rate on all future loans of that type increases permanently.
+</div>
+<h2>Bankruptcy</h2>
+<p>If you cannot pay a debt (loan, rent, tax, maintenance), you must sell property to the bank at <strong>half price</strong> until the debt is covered:</p>
+<table class="rl-table"><thead><tr><th>Property</th><th>Bank Sale Price</th><th>Full Value</th></tr></thead><tbody>
+<tr><td>🏠 Settlement</td><td>2 Grain</td><td>4</td></tr>
+<tr><td>🏙️ City</td><td>3 Grain (reverts to settlement)</td><td>5</td></tr>
+<tr><td>🛣️ Road</td><td>1 Grain</td><td>2</td></tr>
+</tbody></table>
+<p>If you have no assets left after selling everything, the software resets you to 1 settlement + 1 road + 3-turn wait. You remain in the game.</p>`,
+
+  cc:`<h2>Credit Card</h2>
+<table class="rl-table"><thead><tr><th>Detail</th><th>Value</th></tr></thead><tbody>
+<tr><td>Opening cost</td><td>3 resources (any type, from hand)</td></tr>
+<tr><td>Maintenance</td><td>1 resource every 5 turns (auto-deducted)</td></tr>
+<tr><td>Benefit 1</td><td>Borrow resources at 10% interest, due in 2 turns</td></tr>
+<tr><td>Benefit 2</td><td>Auto-cover 1 missing build resource (building perk)</td></tr>
+</tbody></table>
+<h2>Building Perk — How It Works</h2>
+<p>When you click Confirm Build and have an active CC with no overdue CC loans, the software shows a picker: <strong>choose which 1 resource to skip paying</strong>. That resource is borrowed as a CC Loan (same 10% interest, due in 2 turns). You choose — it does not auto-pick the cheapest or first item.</p>
+<p style="margin-top:.4rem">If you do not want to use the perk, click "Build Without Discount" in the picker.</p>
+<h2>CC Loan Penalties</h2>
+<p>Late CC loans: +20% of amount owed. Same restrictions as standard overdue loans — cannot build, trade, buy stocks, or win. 3-turn wait after repayment.</p>`,
+
+  stocks:`<h2>Overview</h2>
+<p>Each of the 5 resources has a <strong>stock price</strong> ranging from 0.5 to 9.0. Buy shares using any resources; sell shares to receive that specific resource back. Prices update <strong>after resources are distributed</strong> each turn.</p>
+<table class="rl-table"><thead><tr><th>Action</th><th>Cost / Receive</th></tr></thead><tbody>
+<tr><td>Buy X shares of resource R</td><td>Pay ⌈price × X⌉ in any resources</td></tr>
+<tr><td>Sell X shares of resource R</td><td>Receive ⌊price × X⌋ of resource R</td></tr>
+</tbody></table>
+<p><strong>Blocked:</strong> Cannot buy stocks if you have any overdue loan.</p>
+<h2>What Controls Prices — Factor 1: Scarcity</h2>
+<p>The software counts total hand resources across all players and divides by player count. Lower average = scarcer = price goes up.</p>
+<table class="rl-table"><thead><tr><th>Avg hand per player</th><th>Price change</th></tr></thead><tbody>
+<tr><td>Less than 1.5</td><td style="color:var(--green2)">+0.40 (very scarce)</td></tr>
+<tr><td>1.5 to 3.0</td><td style="color:var(--green2)">+0.15 (somewhat scarce)</td></tr>
+<tr><td>3.0 to 6.0</td><td style="color:var(--red2)">−0.10 (well supplied)</td></tr>
+<tr><td>6.0 or more</td><td style="color:var(--red2)">−0.35 (flooding the market)</td></tr>
+</tbody></table>
+<h2>Factor 2: Savings Hoarding</h2>
+<p>Resources locked in savings are off the open market. For each unit banked, that resource gets an upward push. Max hoarding bonus is capped at +0.30 regardless of how much is banked.</p>
+<table class="rl-table"><thead><tr><th>Units saved</th><th>Hoarding bonus</th></tr></thead><tbody>
+<tr><td>1</td><td>+0.05</td></tr>
+<tr><td>3</td><td>+0.15</td></tr>
+<tr><td>6</td><td>+0.30 (cap)</td></tr>
+<tr><td>10+</td><td>+0.30 (still capped)</td></tr>
+</tbody></table>
+<h2>Factor 3: Dice Roll Affinity</h2>
+<p>Each resource has specific dice totals that <strong>boost (+0.30)</strong> or <strong>hurt (−0.25)</strong> its price. Rolling a 7 causes random market disruption (±up to 0.25) on all resources. All other rolls add tiny random noise (±0.05 max).</p>
+<table class="rl-table"><thead><tr><th>Resource</th><th>Boosts on rolls</th><th>Hurt on rolls</th><th>Why</th></tr></thead><tbody>
+<tr><td>🐑 Wool</td><td>5, 10</td><td>2, 3</td><td>Pasture hexes — rolls 5 and 10 flood supply, driving hand prices but boosting stock demand signal</td></tr>
+<tr><td>🪵 Wood</td><td>3, 11</td><td>6</td><td>Forest hexes — roll 6 is the most common, flooding wood supply and tanking its price</td></tr>
+<tr><td>🧱 Brick</td><td>4, 9</td><td>8</td><td>Hill hexes — roll 8 is very common and dumps brick; roll 4 is rare so scarcity drives price up</td></tr>
+<tr><td>⛏️ Ore</td><td>9, 12</td><td>5, 10</td><td>Mountain hexes — ore is rare; rolls 5 and 10 are the main ore producers, flooding supply</td></tr>
+<tr><td>🌾 Grain</td><td>3, 4</td><td>6, 8, 9</td><td>Field hexes — grain produces on many common numbers (6, 8, 9), making it chronically oversupplied</td></tr>
+</tbody></table>
+<h2>Factor 4: Active Events</h2>
+<table class="rl-table"><thead><tr><th>Event</th><th>Per-turn stock change</th></tr></thead><tbody>
+<tr><td>🌟 Boom</td><td style="color:var(--green2)">+0.25 all resources</td></tr>
+<tr><td>📉 Crisis</td><td style="color:var(--red2)">−0.20 all resources</td></tr>
+<tr><td>📉 Recession</td><td style="color:var(--red2)">−0.20 all resources</td></tr>
+<tr><td>📉 Depression</td><td style="color:var(--red2)">−0.40 all resources</td></tr>
+</tbody></table>
+<p>All four factors are combined each turn. The Stocks tab shows the exact breakdown for each resource after every price update.</p>
+<p style="margin-top:.5rem;color:var(--text3);font-size:.82rem">Strategy tip: Buy when a resource is plentiful in everyone's hands (low price). Then hoard it in savings — the reduced hand supply drives the price back up. Sell before you need it.</p>`,
+
+  shipping:`<h2>How Shipping Works</h2>
+<p>Order any resource type from the global market. Pay a fee now, receive the resources later.</p>
+<table class="rl-table"><thead><tr><th>Type</th><th>Delivery</th><th>Fee</th></tr></thead><tbody>
+<tr><td>Standard</td><td>3 turns from now</td><td>3 resources (any type except the ordered resource)</td></tr>
+<tr><td>Expedited</td><td>Next turn</td><td>6 resources (double fee, any type except the ordered resource)</td></tr>
+</tbody></table>
+<p><strong>Important:</strong> You cannot use the resource you are ordering to pay the shipping fee. If you order Ore, you cannot pay the fee in Ore.</p>
+<div class="rl-warn">Shipping is <strong>fully suspended during Recession and Depression</strong>. Any orders already in transit are cancelled with no refund of fees already paid. Do not place orders if a downturn is likely.</div>`,
+
+  rentals:`<h2>Creating a Rental</h2>
+<p>Any two players can form a rental agreement. The <strong>landlord</strong> owns the property and collects resources. The <strong>tenant</strong> pays from their hand on a schedule. Ownership of the property does not transfer — the landlord keeps the VP.</p>
+<h2>Rental Rates</h2>
+<table class="rl-table"><thead><tr><th>Property</th><th>Cost to Tenant</th><th>Frequency</th></tr></thead><tbody>
+<tr><td>🏠 Settlement</td><td>1 Wool + 1 Brick</td><td>Every 2 turns</td></tr>
+<tr><td>🏙️ City</td><td>1 Wood + 1 Wool + 1 Brick</td><td>Every 2 turns</td></tr>
+<tr><td>🛣️ Road Toll</td><td>2 Wood</td><td>Every 3 turns</td></tr>
+</tbody></table>
+<p>Multiple tenants can have separate toll agreements on the same road — each pays independently.</p>
+<h2>Ending an Agreement</h2>
+<p>Either player can end the agreement on their own turn. Any rent currently due must be paid first before the agreement closes.</p>
+<div class="rl-warn">Rentals are <strong>fully suspended during Recession and Depression</strong>. No payments are collected or owed during downturn turns.</div>`,
+
+  events:`<h2>Bank Collapse</h2>
+<p><strong>Trigger:</strong> Rolling the exact same total as the previous roll (shown in navbar).</p>
+<p>The collapse runs as 4 sequential phases in the software:</p>
+<table class="rl-table"><thead><tr><th>Phase</th><th>What Happens</th></tr></thead><tbody>
+<tr><td>1 — Shock</td><td>Each player (in turn order) opens a picker and chooses which resources to discard — must discard ⌈hand ÷ 2⌉ (rounded up). Players with 0 resources skip.</td></tr>
+<tr><td>2 — Collapse</td><td>All stock prices drop 50%. All savings deposits are wiped. All active loans become immediately due. All shipping orders and rentals are cancelled.</td></tr>
+<tr><td>3 — Liquidation</td><td>Each player chooses: <strong>sell 1 property to bank</strong> (instant, half price) OR <strong>pay 3 resources to bank</strong>. Players with nothing are exempt. Count how many players sell property.</td></tr>
+<tr><td>4 — Ritual</td><td>10-second countdown. The Bank Manager must fall to the floor, cry dramatically, and lament the collapse out loud. The confirm button unlocks after 10 seconds.</td></tr>
+</tbody></table>
+<p><strong>Downturn result:</strong> 2 or more players sold property → <strong>Depression (7 global turns)</strong>. Fewer than 2 sold → <strong>Recession (4 global turns)</strong>.</p>
+<div class="rl-warn" style="border-color:var(--red2)">Failure to perform the Bank Manager ritual = <strong>game ends immediately with no winner.</strong> This is not optional and is enforced by group vote on whether the performance was sincere.</div>
+<hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">
+<h2>Recession (4 global turns) &amp; Depression (7 global turns)</h2>
+<p>A <strong>global turn</strong> = every player takes one turn. Duration counts in full rounds, not individual turns.</p>
+<div class="rl-warn">During a downturn, nobody can: take loans, use savings, use credit cards, ship orders, collect rent, or win the game. <strong>Building and player-to-player trading are still allowed.</strong></div>
+<hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">
+<h2>Economic Boom (3 global turns)</h2>
+<p>Triggered by the Banker via the Events tab. Lasts 3 full rounds.</p>
+<ul>
+<li>When building, a picker appears letting you <strong>skip 1 resource cost of your choice</strong>.</li>
+<li>All stock prices trend <strong>+0.25 per round</strong>.</li>
+<li>A 🌟 notification appears at the start of each turn while active.</li>
+</ul>
+<hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">
+<h2>Economic Crisis (3 global turns)</h2>
+<p>Triggered by the Banker via the Events tab. Lasts 3 full rounds.</p>
+<ul>
+<li>At the start of each turn, all <strong>Rich players</strong> face a modal: <strong>pay 2 resources to the bank</strong> OR <strong>lose all of one resource type</strong> from hand (their choice).</li>
+<li>All stock prices trend <strong>−0.20 per round</strong>.</li>
+</ul>`,
+
+  taxes:`<h2>Tax Collection</h2>
+<p>Taxes are collected automatically every <strong>5 global turns</strong> (5 complete rounds of all players). The tax countdown is visible in the navbar. Taxes are skipped entirely during Recession or Depression.</p>
+<h2>Rates by Rank</h2>
+<table class="rl-table"><thead><tr><th>Rank</th><th>Rate</th><th>Example (2 settlements + 1 city = 4 units)</th></tr></thead><tbody>
+<tr><td>🟡 Rich</td><td>2 resources per property unit</td><td>8 resources owed</td></tr>
+<tr><td>⚪ Middle</td><td>1 resource per property unit</td><td>4 resources owed</td></tr>
+<tr><td>🔴 Poor</td><td>Exempt</td><td>0 owed</td></tr>
+</tbody></table>
+<p>Settlement = 1 unit. City = 2 units. Roads = 0 units. Rankings are based on total assets (savings + stocks + property), not hand resources.</p>
+<h2>Payment Options</h2>
+<p>Each player is shown their tax bill one at a time. Three options:</p>
+<ul>
+<li><strong>Pay</strong> — opens the payment terminal to pay from hand (or savings with debit card).</li>
+<li><strong>Evade</strong> — roll 1 die: 1–3 = caught, pay <em>double</em>. 4–6 = escaped, pay nothing. Once per tax cycle.</li>
+<li><strong>Can't Pay</strong> — opens forced property sale. Sell assets until the debt is covered.</li>
+</ul>`,
+
+  winning:`<h2>How to Win</h2>
+<p>Declare victory at the <strong>start of your turn</strong>. The software shows "WIN!" on your player card if all conditions are met. You cannot win at the end of someone else's turn.</p>
+<h2>All Four Conditions Must Be True</h2>
+<table class="rl-table"><thead><tr><th>Condition</th><th>Notes</th></tr></thead><tbody>
+<tr><td>✅ 10 or more VP</td><td>Settlements, cities, bonuses, dev cards — all count</td></tr>
+<tr><td>✅ No overdue loans</td><td>Any loan type — standard or CC</td></tr>
+<tr><td>✅ No wait period</td><td>3-turn restriction after paying off an overdue loan</td></tr>
+<tr><td>✅ No active downturn</td><td>Recession or Depression blocks all wins</td></tr>
+</tbody></table>
+<h2>Gamble Outcomes</h2>
+<p>Pay 2 resources of any type, roll 1 die:</p>
+<table class="rl-table"><thead><tr><th>Roll</th><th>Outcome</th></tr></thead><tbody>
+<tr><td>1</td><td style="color:var(--green2)">Gain 1 random resource</td></tr>
+<tr><td>2</td><td style="color:var(--red2)">Pay 3 resources to bank (taken from hand automatically)</td></tr>
+<tr><td>3</td><td style="color:var(--green2)">Gain 2 random resources</td></tr>
+<tr><td>4</td><td style="color:var(--red2)">Pay 4 resources to bank</td></tr>
+<tr><td>5</td><td style="color:var(--red2)">Must sell 1 settlement or city — record via Banker mode</td></tr>
+<tr><td>6</td><td style="color:var(--red2)">All active loans gain +10% interest rate permanently</td></tr>
+</tbody></table>`,
+
+  disputes:[
+  ["I have 10 VP, I should win!", "Not if you have overdue loans, are in a wait period, or a downturn is active. All four conditions must be clear simultaneously on your turn."],
+  ["The 3-turn wait is unfair.", "Correct rule. Paying off an overdue loan does not restore win eligibility immediately. The wait is the penalty for being late — not for paying."],
+  ["My savings should count as resources.", "Savings are locked. Cannot be used for building, trading, paying loans, or rent until withdrawn. They only count toward asset ranking."],
+  ["The robber should steal my savings.", "Savings are protected. Only hand resources can be discarded or targeted by the robber. This is a core mechanic — savings are insurance."],
+  ["That was not a real double roll.", "If the new roll matches the previous total exactly, Bank Collapse triggers. The navbar always shows the last roll. Intent does not matter."],
+  ["The Bank Manager refuses the ritual.", "Game ends immediately with no winner. Not negotiable. The group votes on whether the performance was sincere."],
+  ["Can I trade during a downturn?", "Yes. Player-to-player trading is still allowed during Recession and Depression. What is suspended: banking, loans, savings, credit cards, shipping, rentals, and winning."],
+  ["Stock prices are rigged.", "Prices are driven entirely by actual game state. The Stocks tab shows the exact breakdown of why each price moved after every update."],
+  ["Can I repay a loan early?", "Yes, any time during your turn. No early repayment penalty. The full interest amount still applies regardless of when you repay."],
+  ["Can I take a loan to pay off another?", "Yes, if neither loan is overdue. You cannot take a new loan while you have an overdue one. Borrowing to service a non-overdue loan is risky but valid."],
+  ["The rent rate changed.", "Rental rates are fixed by the rules. Once an agreement is created, the rate is locked for that agreement. Either player can end it on their turn, but current due payments must be settled first."],
+  ["Stock prices updated at the wrong time.", "Prices update after the current player clicks Apply on the Resource Distribution step — not at roll time. This means prices reflect post-distribution hand totals."],
+  ["The Boom discount removed the wrong resource.", "The Boom and CC discounts use a picker — you choose which resource to skip. If someone skipped automatically without choosing, contact the Banker to adjust via the Controls tab."],
 ].map(function(d){return '<div class="rl-dispute"><div class="rl-dispute-q">&ldquo;'+d[0]+'&rdquo;</div><div class="rl-dispute-a">'+d[1]+'</div></div>';}).join("")
+  + '<p style="color:var(--text3);font-size:.8rem;margin-top:1rem">The software is the final authority. If it allows or blocks an action, that ruling stands.</p>',
 };
 
 function openRulebook(){
